@@ -1,0 +1,54 @@
+# Claude Code local settings (machine-specific paths)
+.claude/
+
+# Benchmark / experiment folders
+JetsonNano/
+RTX3080/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments (cả hai tên thường dùng)
+venv/
+.venv/
+env/
+ENV/
+
+# Model files (large binaries — chạy train_models.py để tái tạo)
+app/backend/models/
+*.cbm
+
+# CatBoost training artifacts (log, checkpoint, tmp)
+catboost_info/
+**/catboost_info/
+
+# Environment variables (chứa credentials, API keys, mật khẩu)
+.env
+.env.*
+!.env.example
+
+# Database (chứa dữ liệu người dùng)
+app/backend/users.db
+
+# Jupyter checkpoints & output cache
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
