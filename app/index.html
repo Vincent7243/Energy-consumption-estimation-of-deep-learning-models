@@ -1,0 +1,1766 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>EdgeBench — Dự đoán hiệu năng mô hình DL</title>
+
+<!-- Fonts: Inter for UI, IBM Plex Mono for terminal/code -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.4.21/vue.global.prod.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --bg:#ffffff; --bg2:#f7f8fc; --panel:#ffffff; --ink:#1e1e2f; --ink-soft:#64748b;
+  --line:#e8ecf4; --accent:#6366f1; --accent-2:#f43f5e; --ok:#10b981;
+  --c-acc:#6366f1; --c-lat:#f59e0b; --c-thr:#10b981; --c-eng:#8b5cf6;
+  --grid:rgba(99,102,241,.025); --shadow:0 4px 32px -8px rgba(99,102,241,.08),0 1px 4px rgba(0,0,0,.04);
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'Inter',system-ui,-apple-system,sans-serif;
+  --radius:16px;
+}
+.theme-jetson{
+  --bg:#ffffff; --bg2:#f0fafb; --panel:#ffffff; --ink:#0e2233; --ink-soft:#4a7a94;
+  --line:#d4e8ef; --accent:#0891b2; --accent-2:#f97316; --ok:#14b8a6;
+  --c-acc:#0891b2; --c-lat:#f97316; --c-thr:#14b8a6; --c-eng:#a855f7;
+  --grid:rgba(8,145,178,.02); --shadow:0 4px 32px -8px rgba(8,145,178,.08),0 1px 4px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family:var(--sans);color:var(--ink);background:var(--bg);
+  transition:background .6s cubic-bezier(.4,0,.2,1),color .4s ease;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+}
+#app{min-height:100vh}
+
+/* blueprint grid + crop marks */
+.bg-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:38px 38px;transition:background-image .6s ease;
+}
+.crop{position:fixed;width:26px;height:26px;border:1.5px solid var(--accent);opacity:.4;z-index:2;pointer-events:none}
+.crop.tl{top:18px;left:18px;border-right:0;border-bottom:0}
+.crop.tr{top:18px;right:18px;border-left:0;border-bottom:0}
+.crop.bl{bottom:18px;left:18px;border-right:0;border-top:0}
+.crop.br{bottom:18px;right:18px;border-left:0;border-top:0}
+
+a{color:inherit}
+button{font-family:var(--sans);cursor:pointer}
+strong{font-weight:700}
+
+/* ========== AUTH ========== */
+.auth-wrap{
+  position:relative;z-index:3;min-height:100vh;
+  display:grid;grid-template-columns:1.15fr .85fr;
+}
+@media(max-width:900px){.auth-wrap{grid-template-columns:1fr}.auth-brand{display:none}}
+
+.auth-brand{
+  position:relative;overflow:hidden;padding:64px 68px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  background:linear-gradient(155deg,#f8faff 0%,#eef2ff 50%,#fdf4ff 100%);
+  border-right:1px solid #e8ecf4;
+}
+/* subtle diagonal stripe overlay */
+.auth-brand::after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(
+    -55deg,transparent,transparent 28px,
+    color-mix(in srgb,var(--accent) 5%,transparent) 28px,
+    color-mix(in srgb,var(--accent) 5%,transparent) 29px);
+}
+.brand-badge{
+  display:inline-flex;align-items:center;gap:9px;
+  font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent);
+  padding:6px 12px;border-radius:5px;width:fit-content;margin-bottom:32px;
+  font-family:var(--mono);
+}
+.brand-badge::before{
+  content:"";display:inline-block;width:7px;height:7px;border-radius:50%;
+  background:var(--accent);animation:pulse 2.2s infinite;
+}
+.brand-title{
+  font-size:clamp(52px,6vw,88px);font-weight:700;line-height:.9;
+  letter-spacing:-.025em;margin-bottom:24px;
+}
+.brand-title em{font-style:italic;color:var(--accent)}
+.brand-desc{
+  font-size:16.5px;line-height:1.75;color:var(--ink-soft);
+  max-width:36ch;margin-bottom:36px;
+}
+.brand-desc strong{color:var(--ink)}
+
+/* specs grid */
+.brand-specs{
+  display:grid;grid-template-columns:1fr 1fr;
+  border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:36px;
+}
+.spec-cell{
+  padding:13px 18px;background:var(--panel);
+  border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+}
+.spec-cell:nth-child(2n){border-right:0}
+.spec-cell:nth-last-child(-n+2){border-bottom:0}
+.spec-cell .sc-lbl{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px;font-family:var(--mono)}
+.spec-cell .sc-val{font-size:14px;font-weight:700;color:var(--ink)}
+
+/* roofline svg */
+.roof{width:100%;max-width:480px;height:195px;margin-bottom:22px}
+.brand-legend{display:flex;gap:22px;font-size:12px;color:var(--ink-soft)}
+.brand-legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.brand-footnote{
+  font-size:12px;color:var(--ink-soft);letter-spacing:.04em;
+  margin-top:auto;padding-top:22px;border-top:1px solid var(--line);
+  font-family:var(--mono);
+}
+
+/* auth right panel */
+.auth-panel{
+  position:relative;display:flex;align-items:center;justify-content:center;padding:52px 36px;
+}
+.card{
+  width:100%;max-width:430px;background:var(--panel);
+  border:1px solid var(--line);border-radius:22px;
+  padding:44px 40px;box-shadow:0 8px 40px -12px rgba(99,102,241,.1),0 2px 8px rgba(0,0,0,.04);position:relative;
+  backdrop-filter:blur(12px);
+}
+.card::before{
+  content:"";position:absolute;top:-1px;left:32px;right:32px;height:2px;
+  background:linear-gradient(90deg,var(--accent),color-mix(in srgb,var(--accent) 20%,transparent));
+  border-radius:2px;
+}
+.card-label{
+  font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--ink-soft);margin-bottom:26px;font-family:var(--mono);
+}
+/* underline tabs */
+.tabs{display:flex;border-bottom:1.5px solid var(--line);margin-bottom:28px}
+.tabs button{
+  flex:1;border:0;background:transparent;padding:10px 8px 13px;
+  font-size:15px;font-weight:700;color:var(--ink-soft);position:relative;transition:color .2s;
+}
+.tabs button.on{color:var(--accent)}
+.tabs button.on::after{
+  content:"";position:absolute;bottom:-1.5px;left:0;right:0;height:2.5px;
+  background:var(--accent);border-radius:2px;
+}
+h2.form-h{font-weight:700;font-size:28px;margin:0 0 6px;line-height:1.15}
+.form-note{color:var(--ink-soft);font-size:14.5px;margin:0 0 24px;line-height:1.55}
+label{display:block;font-size:13.5px;font-weight:700;margin:18px 0 7px;color:var(--ink)}
+input{
+  width:100%;padding:14px 16px;border:1.5px solid var(--line);border-radius:12px;
+  background:var(--bg2);color:var(--ink);font-size:15px;font-family:var(--sans);
+  transition:border .2s,box-shadow .2s,background .2s;
+}
+input:focus{
+  outline:0;border-color:var(--accent);background:var(--bg);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 10%,transparent);
+}
+input::placeholder{color:var(--ink-soft);opacity:.5}
+.btn{
+  width:100%;margin-top:24px;padding:15px;border:0;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 80%,#a855f7));
+  color:#fff;font-weight:700;font-size:15.5px;
+  box-shadow:0 6px 24px -6px color-mix(in srgb,var(--accent) 40%,transparent);
+  transition:transform .15s,filter .2s,box-shadow .2s;
+}
+.theme-jetson .btn{color:#fff}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:0 10px 32px -8px color-mix(in srgb,var(--accent) 45%,transparent)}
+.btn:active{transform:translateY(0px)}
+.btn[disabled]{opacity:.55;cursor:wait;box-shadow:none;transform:none}
+.link{background:0;border:0;color:var(--accent);font-size:13.5px;font-weight:700;padding:0;margin-top:14px;display:block;text-align:center}
+.alert{margin-top:18px;font-size:13.5px;padding:12px 15px;border-radius:10px;border:1px solid;line-height:1.5}
+.alert.err{color:var(--accent-2);border-color:color-mix(in srgb,var(--accent-2) 38%,transparent);background:color-mix(in srgb,var(--accent-2) 8%,transparent)}
+.alert.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 38%,transparent);background:color-mix(in srgb,var(--ok) 8%,transparent)}
+.demo-flag{
+  margin-top:22px;text-align:center;font-size:11px;font-family:var(--mono);
+  color:var(--ink-soft);letter-spacing:.12em;
+  padding-top:18px;border-top:1px solid var(--line);
+}
+
+/* ========== APP SHELL ========== */
+.shell{position:relative;z-index:3;max-width:1340px;margin:0 auto;display:flex;align-items:stretch;min-height:100vh}
+.shell-right{flex:1;min-width:0;padding:34px 30px 60px;display:flex;flex-direction:column}
+
+/* sidebar — full height left column */
+.sidebar{
+  width:236px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;
+  background:var(--panel);border-right:1px solid var(--line);
+  padding:28px 16px;display:flex;flex-direction:column;
+}
+.nav-section-label{
+  font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);
+  font-family:var(--mono);padding:6px 10px 8px;opacity:.7;
+}
+.nav-btn{
+  display:flex;align-items:flex-start;gap:12px;width:100%;padding:12px 14px;
+  border-radius:10px;border:none;background:transparent;color:var(--ink-soft);
+  font-family:var(--sans);font-size:14.5px;font-weight:500;text-align:left;
+  transition:background .15s,color .15s;cursor:pointer;margin-bottom:4px;
+}
+.nav-btn:hover{background:color-mix(in srgb,var(--accent) 8%,var(--bg));color:var(--ink)}
+.nav-btn.on{
+  background:color-mix(in srgb,var(--accent) 13%,var(--bg));
+  color:var(--accent);font-weight:600;
+}
+.nav-btn.edge-btn.on{
+  background:color-mix(in srgb,#0891b2 13%,var(--bg));
+  color:#0891b2;
+}
+.theme-jetson .nav-btn.on{color:var(--accent)}
+.nav-text{display:flex;flex-direction:column;gap:2px;flex:1}
+.nav-title{font-size:14.5px;font-weight:600;line-height:1.25;color:inherit}
+.nav-sub{font-size:11.5px;color:var(--ink-soft);font-weight:400;line-height:1.35;transition:color .15s}
+.nav-btn.on .nav-sub{color:color-mix(in srgb,var(--accent) 75%,var(--ink-soft))}
+.nav-btn.edge-btn.on .nav-sub{color:color-mix(in srgb,#0891b2 75%,var(--ink-soft))}
+.nav-icon{font-size:19px;width:22px;text-align:center;flex-shrink:0;margin-top:1px}
+.nav-led{
+  width:8px;height:8px;border-radius:50%;background:var(--ink-soft);
+  flex-shrink:0;opacity:.5;transition:all .2s;margin-top:5px;
+}
+.nav-btn.on .nav-led{background:var(--ok);opacity:1;box-shadow:0 0 6px color-mix(in srgb,var(--ok) 60%,transparent)}
+.nav-sep{height:1px;background:var(--line);margin:12px 4px}
+.main-content{flex:1;min-width:0;margin-top:22px}
+
+/* intro & guide pages */
+.page-intro,.page-guide{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-hero{
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 7%,var(--panel)) 0%,color-mix(in srgb,var(--accent) 4%,var(--bg2)) 100%);
+  border:1px solid color-mix(in srgb,var(--accent) 18%,var(--line));
+  border-radius:20px;padding:32px 36px 28px;margin-bottom:20px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.page-hero::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 70%,transparent) 50%,transparent);
+}
+.page-hero h2{font-size:28px;font-weight:700;margin:0 0 10px;letter-spacing:-.02em}
+.page-hero h2 em{font-style:italic;color:var(--accent)}
+.page-hero p{color:var(--ink-soft);font-size:15px;line-height:1.7;margin:0}
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.feat-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:18px 20px;box-shadow:var(--shadow);
+}
+.feat-card .fc-icon{font-size:24px;margin-bottom:10px}
+.feat-card h4{font-size:14.5px;font-weight:700;margin:0 0 6px;color:var(--ink)}
+.feat-card p{font-size:13px;color:var(--ink-soft);line-height:1.6;margin:0}
+.tech-row{
+  display:flex;gap:10px;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;
+  margin-bottom:20px;
+}
+.tech-chip{
+  font-size:12px;font-family:var(--mono);font-weight:600;
+  padding:4px 10px;border-radius:5px;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));
+  background:color-mix(in srgb,var(--accent) 6%,var(--bg));color:var(--accent);
+}
+.guide-step{
+  display:flex;gap:16px;margin-bottom:16px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;
+}
+.step-num{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#a855f7));
+  color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;
+}
+.guide-step h4{font-size:14.5px;font-weight:700;margin:0 0 5px}
+.guide-step p,.guide-step ul{font-size:13px;color:var(--ink-soft);line-height:1.65;margin:0;padding-left:16px}
+.guide-step ul{margin-top:4px}
+.guide-sep{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono);
+  color:var(--ink-soft);margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-bottom:28px;padding:18px 24px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,var(--bg)) 0%,color-mix(in srgb,var(--accent) 3%,var(--bg2)) 100%);
+  border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line));
+  border-radius:16px;
+  transition:background .5s ease,border-color .5s ease;
+  box-shadow:0 2px 12px -4px color-mix(in srgb,var(--accent) 8%,transparent);
+}
+.logo{display:flex;align-items:center;gap:15px}
+.logo .dot{
+  width:13px;height:13px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--accent) 18%,transparent);
+  animation:pulse 2.4s infinite;flex-shrink:0;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.38}}
+.logo-text .logo-name{font-size:27px;font-weight:700;letter-spacing:-.015em}
+.logo-text .logo-name em{font-style:italic;color:var(--accent)}
+.logo-text .logo-sub{font-size:10.5px;color:var(--ink-soft);margin-top:2px;letter-spacing:.1em;font-family:var(--mono)}
+.topbar-right{display:flex;align-items:center;gap:14px}
+.user-chip{display:flex;align-items:center;gap:12px}
+.avatar{
+  width:36px;height:36px;border-radius:10px;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 70%,#a855f7));
+  color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0;
+}
+.theme-jetson .avatar{color:#fff}
+.user-info .ui-name{font-size:14px;font-weight:700;color:var(--ink)}
+.user-info .ui-badge{font-size:9.5px;color:var(--accent);font-family:var(--mono);letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+.ghost{
+  background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  padding:9px 16px;border-radius:9px;font-size:13.5px;font-weight:700;transition:.15s;
+}
+.ghost:hover{border-color:var(--accent-2);color:var(--accent-2)}
+
+/* mode bar */
+.modebar{display:flex;align-items:flex-start;gap:16px;margin-bottom:26px;flex-wrap:wrap}
+.seg{
+  display:inline-flex;background:var(--bg2);border:1px solid var(--line);
+  border-radius:14px;padding:5px;gap:5px;
+}
+.seg button{
+  border:0;background:transparent;color:var(--ink-soft);padding:11px 24px;border-radius:10px;
+  font-weight:700;font-size:14px;display:flex;align-items:center;gap:9px;transition:.2s;
+}
+.seg button.on{
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 80%,#a855f7));color:#fff;
+  box-shadow:0 4px 16px -4px color-mix(in srgb,var(--accent) 40%,transparent);
+}
+.theme-jetson .seg button.on{color:#fff}
+.seg .led{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.8}
+.mode-info{display:flex;flex-direction:column;justify-content:center;gap:3px}
+.mode-hint{font-size:15px;color:var(--ink-soft);font-weight:500}
+.mode-count{font-size:11.5px;color:var(--accent);font-weight:700;font-family:var(--mono)}
+
+/* panels */
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:20px;
+  padding:28px 30px 26px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  backdrop-filter:blur(8px);
+}
+.panel::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 60%,transparent) 50%,transparent);
+}
+.panel-header{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
+.panel-icon{
+  width:42px;height:42px;border-radius:10px;flex-shrink:0;
+  background:color-mix(in srgb,var(--accent) 10%,transparent);
+  border:1px solid color-mix(in srgb,var(--accent) 22%,transparent);
+  display:grid;place-items:center;font-size:20px;
+}
+.panel h3{font-size:21px;font-weight:700;margin:0 0 5px;line-height:1.2}
+.panel .desc{color:var(--ink-soft);font-size:14px;margin:0;line-height:1.6}
+
+/* colored outer-border panels */
+.panel-server{
+  background:linear-gradient(160deg,color-mix(in srgb,#4a90ff 8%,var(--panel)) 0%,color-mix(in srgb,#1e40af 6%,var(--panel)) 100%);
+  border-color:#2554a8;
+  box-shadow:0 0 0 3px color-mix(in srgb,#4a90ff 12%,transparent),var(--shadow);
+}
+.panel-server h3{
+  background:linear-gradient(90deg,#60a5fa 0%,#3b82f6 50%,#818cf8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.panel-jetson{
+  background:linear-gradient(160deg,color-mix(in srgb,#22d3ee 6%,var(--panel)) 0%,color-mix(in srgb,#0891b2 5%,var(--panel)) 100%);
+  border-color:#0e7490;
+  box-shadow:0 0 0 3px color-mix(in srgb,#22d3ee 10%,transparent),var(--shadow);
+}
+.panel-jetson h3{
+  background:linear-gradient(90deg,#22d3ee 0%,#06b6d4 50%,#2dd4a8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.theme-jetson .panel-jetson{
+  background:linear-gradient(160deg,color-mix(in srgb,#22d3ee 8%,var(--panel)) 0%,color-mix(in srgb,#0891b2 6%,var(--panel)) 100%);
+  border-color:#0e7490;
+  box-shadow:0 0 0 3px color-mix(in srgb,#22d3ee 14%,transparent),var(--shadow);
+}
+.theme-jetson .panel-jetson h3{
+  background:linear-gradient(90deg,#22d3ee 0%,#06b6d4 40%,#2dd4a8 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.theme-jetson .topbar{
+  background:linear-gradient(112deg,color-mix(in srgb,#0891b2 14%,var(--bg2)) 0%,color-mix(in srgb,#22d3ee 8%,var(--bg2)) 100%);
+  border-color:color-mix(in srgb,#0e7490 35%,var(--line));
+}
+
+.grid2{display:grid;grid-template-columns:1.05fr 1.3fr;gap:26px}
+@media(max-width:850px){.grid2{grid-template-columns:1fr}}
+.field-row{display:flex;gap:10px;flex-wrap:wrap}
+.field-row > div{flex:1;min-width:130px}
+.suggest-label{
+  display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft);margin:18px 0 7px;font-family:var(--mono);
+}
+.suggest{display:flex;flex-wrap:wrap;gap:7px}
+.suggest button{
+  font-size:12px;border:1px dashed var(--line);background:transparent;
+  color:var(--ink-soft);padding:5px 11px;border-radius:7px;transition:.15s;
+  font-family:var(--mono);
+}
+.suggest button:hover{border-color:var(--accent);color:var(--accent);border-style:solid;background:color-mix(in srgb,var(--accent) 6%,transparent)}
+
+/* metric cards */
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.metric{
+  position:relative;border:1px solid var(--line);border-radius:14px;
+  padding:18px 18px 15px;background:var(--bg2);overflow:hidden;transition:.25s ease;
+}
+.metric:hover{
+  border-color:var(--mc,var(--accent));
+  box-shadow:0 8px 28px -8px color-mix(in srgb,var(--mc,var(--accent)) 18%,transparent);
+  transform:translateY(-2px);
+}
+.metric-stripe{position:absolute;top:0;left:0;right:0;height:3.5px;background:var(--mc,var(--accent));border-radius:13px 13px 0 0}
+.metric::after{
+  content:"";position:absolute;right:-22px;top:-22px;width:82px;height:82px;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--mc,var(--accent)) 13%,transparent),transparent 70%);
+}
+.metric.m-acc{--mc:var(--c-acc)}
+.metric.m-lat{--mc:var(--c-lat)}
+.metric.m-thr{--mc:var(--c-thr)}
+.metric.m-eng{--mc:var(--c-eng)}
+.metric .mlabel{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mc,var(--ink-soft));font-weight:700;font-family:var(--mono)}
+.metric .mval{font-size:30px;font-weight:700;margin-top:9px;letter-spacing:-.03em;color:var(--ink);font-family:var(--mono)}
+.metric .munit{font-size:12.5px;color:var(--ink-soft);margin-left:4px;font-weight:400;font-family:var(--sans)}
+.metric .arrow{position:absolute;right:14px;top:13px;font-size:10.5px;font-family:var(--mono);color:var(--mc,var(--accent));font-weight:700}
+.metric .mdesc{font-size:12px;color:var(--ink-soft);margin-top:6px}
+
+.empty-metrics{
+  display:grid;place-items:center;min-height:250px;
+  border:1.5px dashed var(--line);border-radius:14px;
+  color:var(--ink-soft);text-align:center;font-size:14.5px;line-height:1.65;gap:8px;
+}
+.empty-metrics .em-icon{font-size:34px;opacity:.35;display:block}
+.src-tag{
+  display:inline-flex;align-items:center;gap:7px;margin-top:13px;font-size:11px;
+  color:var(--ink-soft);border:1px solid var(--line);padding:4px 11px;border-radius:7px;
+  font-family:var(--mono);
+}
+.src-tag::before{content:"◈";color:var(--accent);font-size:9.5px}
+
+/* verdict */
+.verdict{
+  margin-top:18px;border-radius:14px;padding:18px 20px;border:1px solid;
+  display:flex;align-items:flex-start;gap:16px;
+}
+.verdict .vchip{
+  font-size:13.5px;font-weight:700;padding:9px 17px;border-radius:9px;
+  white-space:nowrap;flex-shrink:0;letter-spacing:.03em;
+}
+.verdict .vbody strong{font-size:15px;font-weight:700;display:block;margin-bottom:3px}
+.verdict small{display:block;color:var(--ink-soft);font-size:12px;line-height:1.6;font-family:var(--mono)}
+.verdict.strong{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 8%,transparent)}
+.verdict.strong .vchip{background:var(--ok);color:#fff}
+.verdict.mid{border-color:var(--accent-2);background:color-mix(in srgb,var(--accent-2) 8%,transparent)}
+.verdict.mid .vchip{background:var(--accent-2);color:#fff}
+.verdict.weak{border-color:#c82e1e;background:color-mix(in srgb,#c82e1e 8%,transparent)}
+.verdict.weak .vchip{background:#c82e1e;color:#fff}
+
+/* eval mode toggle */
+.eval-toggle{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.eval-toggle .etlabel{font-size:11.5px;color:var(--ink-soft);font-family:var(--mono);letter-spacing:.06em;margin-right:4px}
+.eval-toggle button{font-size:12px;padding:5px 13px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--ink-soft);cursor:pointer;transition:.15s}
+.eval-toggle button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.eval-toggle .info-btn{margin-left:auto;font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--ink-soft);cursor:pointer}
+.eval-toggle .info-btn:hover{border-color:var(--accent);color:var(--accent)}
+/* metric selector */
+.metric-sel{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.metric-sel button{font-size:12px;padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--ink-soft);cursor:pointer;transition:.15s}
+.metric-sel button.on{font-weight:700;color:#fff}
+.metric-sel button.sel-acc.on{background:var(--ok);border-color:var(--ok)}
+.metric-sel button.sel-lat.on{background:#e07c3b;border-color:#e07c3b}
+.metric-sel button.sel-thr.on{background:var(--accent);border-color:var(--accent)}
+.metric-sel button.sel-eng.on{background:#7b5ea7;border-color:#7b5ea7}
+/* criteria modal */
+.criteria-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center}
+.criteria-modal{background:#fff;border-radius:18px;padding:28px 32px;max-width:520px;width:90%;box-shadow:0 12px 60px rgba(0,0,0,.35);position:relative;z-index:201;color:#1a1a2e}
+.criteria-modal h4{margin:0 0 16px;font-size:15px;font-weight:700}
+.criteria-modal table{width:100%;border-collapse:collapse;font-size:13px}
+.criteria-modal th{text-align:left;padding:7px 10px;font-size:11px;font-family:var(--mono);letter-spacing:.06em;color:#666;border-bottom:1px solid #e5e5e5}
+.criteria-modal td{padding:7px 10px;border-bottom:1px solid #f0f0f0;color:#1a1a2e}
+.criteria-modal .c-strong{color:var(--ok);font-weight:700}
+.criteria-modal .c-mid{color:var(--accent-2);font-weight:700}
+.criteria-modal .c-weak{color:#c82e1e;font-weight:700}
+.criteria-modal .close-btn{margin-top:18px;width:100%;padding:9px;border-radius:9px;border:1px solid #ddd;background:#f7f7f7;cursor:pointer;font-size:13px;color:#333}
+/* score bar in multi verdict */
+.score-bar{display:flex;gap:3px;margin-top:8px}
+.score-bar span{height:5px;flex:1;border-radius:3px;background:var(--border)}
+.score-bar span.filled.s{background:var(--ok)}
+.score-bar span.filled.m{background:var(--accent-2)}
+.score-bar span.filled.w{background:#c82e1e}
+
+/* jetson subtabs */
+.subtabs{display:flex;gap:9px;margin-bottom:22px}
+.subtabs button{
+  border:1px solid var(--line);background:var(--bg2);color:var(--ink-soft);
+  padding:11px 19px;border-radius:11px;font-weight:700;font-size:14px;transition:.15s;
+  display:flex;align-items:center;gap:9px;
+}
+.subtabs button .stnum{
+  width:22px;height:22px;border-radius:5px;background:var(--bg);border:1px solid var(--line);
+  display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--ink-soft);font-family:var(--mono);
+}
+.subtabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.subtabs button.on .stnum{background:color-mix(in srgb,#fff 15%,transparent);border-color:transparent;color:#fff}
+.theme-jetson .subtabs button.on{color:#fff}
+.theme-jetson .subtabs button.on .stnum{color:#fff}
+
+/* ssh form */
+.ssh-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:11px;align-items:flex-end;margin-bottom:18px}
+@media(max-width:700px){.ssh-grid{grid-template-columns:1fr}}
+.run-btn{
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 80%,#a855f7));
+  color:#fff;border:0;border-radius:12px;
+  padding:14px 20px;font-weight:700;font-size:14px;white-space:nowrap;
+  transition:filter .15s,box-shadow .15s,transform .15s;
+  box-shadow:0 6px 20px -5px color-mix(in srgb,var(--accent) 35%,transparent);
+}
+.run-btn:hover:not(:disabled){filter:brightness(1.05);transform:translateY(-1px)}
+.run-btn:disabled{opacity:.55;cursor:wait;box-shadow:none;transform:none}
+.theme-jetson .run-btn{color:#fff}
+.stop-btn{background:#e53935;color:#fff;border:0;border-radius:12px;padding:14px 20px;font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;transition:filter .15s,transform .15s;}
+.stop-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.resume-btn{background:#43a047;color:#fff;border:0;border-radius:12px;padding:14px 20px;font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;transition:filter .15s,transform .15s;}
+.resume-btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.kill-btn{background:#616161;color:#fff;border:0;border-radius:12px;padding:14px 20px;font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;transition:filter .15s,transform .15s;}
+.kill-btn:hover{filter:brightness(1.2);transform:translateY(-1px)}
+
+/* terminal */
+.term-head{
+  display:flex;align-items:center;gap:8px;
+  background:#0b0e10;border:1px solid #1e2c28;border-bottom:0;
+  border-radius:14px 14px 0 0;padding:11px 16px;
+}
+.term-head .tdot{width:11px;height:11px;border-radius:50%}
+.t1{background:#ff5f56}.t2{background:#ffbd2e}.t3{background:#27c93f}
+.term-head .ttitle{font-family:var(--mono);font-size:11.5px;color:#7a8882;margin-left:8px}
+.term-head .tsep{flex:1}
+.term-head .tbadge{font-family:var(--mono);font-size:9.5px;color:#28d470;border:1px solid #28d47033;padding:3px 8px;border-radius:4px;letter-spacing:.1em}
+.term{
+  background:#060a0b;border:1px solid #1e2c28;border-radius:0 0 14px 14px;
+  padding:18px;height:370px;overflow:auto;
+  font-family:var(--mono);font-size:12.5px;line-height:1.7;color:#b8e4cc;white-space:pre-wrap;
+}
+.term .c-cmd{color:#5dd0ff}.term .c-ok{color:#28d470}.term .c-warn{color:#ffb648}
+.term .c-dim{color:#4e6660}.term .c-hi{color:#ffffff}
+.term .cursor{display:inline-block;width:8px;height:15px;background:#28d470;vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* divider */
+.hdivider{display:flex;align-items:center;gap:13px;margin:4px 0 22px;color:var(--ink-soft);font-size:11px;letter-spacing:.12em;font-family:var(--mono)}
+.hdivider::before,.hdivider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+footer{
+  text-align:center;margin-top:52px;font-size:12px;font-family:var(--mono);
+  color:var(--ink-soft);padding-top:20px;border-top:1px solid var(--line);letter-spacing:.05em;
+}
+footer .fsep{margin:0 12px;opacity:.4}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.fade-enter-active,.fade-leave-active{transition:opacity .35s,transform .35s}
+.fade-enter-from{opacity:0;transform:translateY(10px)}
+.fade-leave-to{opacity:0}
+
+/* ---- file import (RTX3080 only) ---- */
+.import-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.import-btn-label{display:inline-flex;align-items:center;gap:7px;background:var(--bg2);border:1.5px dashed var(--accent);color:var(--accent);border-radius:10px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap}
+.import-btn-label:hover{background:color-mix(in srgb,var(--accent) 8%,var(--bg))}
+.imported-chip{font-family:var(--mono);font-size:11.5px;color:var(--ink-soft);background:var(--bg2);padding:5px 10px;border-radius:7px;border:1px solid var(--line);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px}
+.import-notice{margin-top:10px;border-radius:11px;padding:11px 14px;font-size:13px;line-height:1.5}
+.import-notice.ok{background:color-mix(in srgb,var(--ok) 10%,var(--bg));border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);color:color-mix(in srgb,var(--ok) 80%,var(--ink))}
+.import-notice.timm-only{background:color-mix(in srgb,#3b82f6 9%,var(--bg));border:1px solid color-mix(in srgb,#3b82f6 38%,transparent);color:#1d4ed8}
+.import-notice.danger{background:color-mix(in srgb,var(--accent-2) 9%,var(--bg));border:1px solid color-mix(in srgb,var(--accent-2) 38%,transparent);color:color-mix(in srgb,var(--accent-2) 85%,var(--ink))}
+.import-notice.uploading{background:color-mix(in srgb,var(--ink-soft) 7%,var(--bg));border:1px solid color-mix(in srgb,var(--ink-soft) 20%,transparent);color:var(--ink-soft)}
+.import-notice.convert-needed{background:color-mix(in srgb,#f97316 9%,var(--bg));border:1px solid color-mix(in srgb,#f97316 38%,transparent);color:#9a3412}
+.import-notice.converted{background:color-mix(in srgb,var(--accent) 10%,var(--bg));border:1px solid color-mix(in srgb,var(--accent) 35%,transparent);color:var(--accent)}
+.import-notice strong{font-size:13px;display:block;margin-bottom:3px}
+.import-filename{font-family:var(--mono);font-size:11px;opacity:.75}
+.convert-btn{margin-top:8px;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:filter .15s}
+.convert-btn:hover{filter:brightness(1.12)}
+.sug-panel{margin-top:10px}
+.sug-panel p{margin:0 0 7px;font-size:12px;color:var(--ink-soft)}
+.sug-chips{display:flex;flex-wrap:wrap;gap:6px}
+.sug-chip{background:var(--bg2);border:1.5px solid var(--accent);color:var(--accent);border-radius:7px;padding:4px 11px;font-size:11.5px;font-family:var(--mono);cursor:pointer;transition:background .12s}
+.sug-chip:hover{background:color-mix(in srgb,var(--accent) 14%,var(--bg))}
+.sug-direct{background:var(--accent);border:0;color:#fff;border-radius:7px;padding:5px 13px;font-size:12px;cursor:pointer;transition:filter .15s}
+.sug-direct:hover{filter:brightness(1.1)}
+
+/* ---- model search panel ---- */
+.label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.label-row label{margin:0}
+.search-toggle{background:none;border:1px solid var(--accent);color:var(--accent);border-radius:7px;padding:4px 10px;font-size:11.5px;font-weight:600;cursor:pointer;transition:background .12s;white-space:nowrap}
+.search-toggle:hover{background:color-mix(in srgb,var(--accent) 10%,var(--bg))}
+.model-search-panel{margin-top:8px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.model-search-input{width:100%;padding:8px 12px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;font-family:var(--sans);background:var(--bg);color:var(--ink);outline:none;transition:border-color .15s}
+.model-search-input:focus{border-color:var(--accent)}
+.model-search-meta{font-size:11px;color:var(--ink-soft);margin:6px 0 8px;font-family:var(--mono)}
+.model-results{display:flex;flex-wrap:wrap;gap:5px;max-height:160px;overflow-y:auto}
+.model-chip{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:6px;padding:3px 9px;font-size:11.5px;font-family:var(--mono);cursor:pointer;transition:border-color .12s,color .12s}
+.model-chip:hover{border-color:var(--accent);color:var(--accent)}
+.format-hint{margin-top:8px;font-size:11.5px;color:var(--ink-soft);line-height:1.6;background:var(--bg2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:7px 11px}
+.format-hint code{font-family:var(--mono);color:var(--accent);font-size:11px}
+.format-hint em{color:var(--ink);font-style:normal;font-family:var(--mono);font-size:11px}
+</style>
+</head>
+<body id="bodyroot">
+<div class="bg-grid"></div>
+<div class="crop tl"></div><div class="crop tr"></div><div class="crop bl"></div><div class="crop br"></div>
+
+<div id="app">
+
+  <!-- =================== AUTH =================== -->
+  <div class="auth-wrap" v-if="screen==='auth'">
+
+    <!-- Brand panel (left) -->
+    <div class="auth-brand">
+      <div>
+        <div class="brand-badge">Graduation Thesis · 2026 · Edge–Cloud Continuum</div>
+        <div class="brand-title">EdgeBench<br><em>Predictor</em></div>
+        <p class="brand-desc">
+          Dự đoán <strong>Accuracy · Latency · Throughput · Energy</strong> của mô hình
+          thị giác máy tính trên RTX&nbsp;3080 và Jetson&nbsp;Nano từ đặc trưng kiến trúc
+          tĩnh — không cần đo trực tiếp trên thiết bị.
+        </p>
+
+        <div class="brand-specs">
+          <div class="spec-cell">
+            <div class="sc-lbl">Bộ dự đoán</div>
+            <div class="sc-val">CatBoost · XGBoost · LightGBM</div>
+          </div>
+          <div class="spec-cell">
+            <div class="sc-lbl">Đặc trưng đầu vào</div>
+            <div class="sc-val">52 đặc trưng kiến trúc tĩnh</div>
+          </div>
+          <div class="spec-cell">
+            <div class="sc-lbl">Nền tảng phần cứng</div>
+            <div class="sc-val">RTX 3080 + Jetson Nano</div>
+          </div>
+          <div class="spec-cell">
+            <div class="sc-lbl">Phương pháp ensemble</div>
+            <div class="sc-val">Trung bình 3 seed ngẫu nhiên</div>
+          </div>
+        </div>
+
+        <svg class="roof" viewBox="0 0 480 195">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0" stop-color="var(--accent)"/>
+              <stop offset="1" stop-color="var(--accent-2)"/>
+            </linearGradient>
+            <linearGradient id="gfill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="var(--accent)" stop-opacity=".12"/>
+              <stop offset="1" stop-color="var(--accent)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g stroke="var(--line)" stroke-width="1" fill="none">
+            <line x1="46" y1="168" x2="452" y2="168"/>
+            <line x1="46" y1="22" x2="46" y2="170"/>
+            <line x1="46" y1="134" x2="452" y2="134" opacity=".3"/>
+            <line x1="46" y1="100" x2="452" y2="100" opacity=".3"/>
+            <line x1="46" y1="66" x2="452" y2="66" opacity=".3"/>
+          </g>
+          <polygon points="46,158 168,76 452,46 452,168 46,168" fill="url(#gfill)"/>
+          <polyline points="46,158 168,76 452,46" fill="none" stroke="url(#g1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="168" cy="76" r="5.5" fill="var(--accent)"/>
+          <g fill="var(--accent-2)" opacity=".9">
+            <circle cx="104" cy="130" r="4.5"/><circle cx="238" cy="62" r="4.5"/>
+            <circle cx="310" cy="53" r="4"/><circle cx="378" cy="48" r="4"/>
+            <circle cx="142" cy="100" r="3.5"/><circle cx="204" cy="70" r="3.5"/>
+            <circle cx="280" cy="57" r="3"/><circle cx="430" cy="47" r="3.5"/>
+          </g>
+          <text x="50" y="186" font-family="IBM Plex Mono" font-size="9.5" fill="var(--ink-soft)">Arithmetic Intensity (FLOP/byte) →</text>
+          <text x="8" y="30" font-family="IBM Plex Mono" font-size="9.5" fill="var(--ink-soft)" transform="rotate(-90 14 58)">Performance</text>
+          <text x="54" y="152" font-family="IBM Plex Mono" font-size="8" fill="var(--accent)" opacity=".7">Memory Bound</text>
+          <text x="358" y="42" font-family="IBM Plex Mono" font-size="8" fill="var(--accent-2)" opacity=".7">Compute Bound</text>
+        </svg>
+        <div class="brand-legend">
+          <span><i style="background:var(--accent)"></i>Roofline ridge</span>
+          <span><i style="background:var(--accent-2)"></i>Các mô hình đã đo</span>
+        </div>
+      </div>
+      <div class="brand-footnote">XGBoost · CatBoost · LightGBM · 52 features · 3-seed ensemble · EdgeBench 2026</div>
+    </div>
+
+    <!-- Auth card (right) -->
+    <div class="auth-panel">
+      <div class="card">
+        <div class="card-label">EdgeBench Predictor · Hệ thống xác thực</div>
+        <div class="tabs">
+          <button :class="{on:tab==='login'}" @click="switchTab('login')">Đăng nhập</button>
+          <button :class="{on:tab==='register'}" @click="switchTab('register')">Đăng ký</button>
+        </div>
+
+        <transition name="fade" mode="out-in">
+        <!-- LOGIN -->
+        <div v-if="tab==='login'" key="login">
+          <h2 class="form-h">Chào mừng trở lại</h2>
+          <p class="form-note">Đăng nhập để truy cập bảng điều khiển dự đoán hiệu năng.</p>
+          <label>Địa chỉ Email</label>
+          <input v-model="email" type="email" placeholder="ban@example.com" @keyup.enter="login"/>
+          <label>Mật khẩu</label>
+          <input v-model="password" type="password" placeholder="••••••••" @keyup.enter="login"/>
+          <button class="btn" :disabled="busy" @click="login">
+            <span v-if="busy" class="spin"></span>Đăng nhập
+          </button>
+          <button class="link" @click="switchTab('forgot')">Quên mật khẩu?</button>
+        </div>
+
+        <!-- REGISTER -->
+        <div v-else-if="tab==='register'" key="register">
+          <h2 class="form-h">Tạo tài khoản mới</h2>
+          <p class="form-note">Tạo tài khoản để truy cập hệ thống dự đoán hiệu năng.</p>
+          <label>Họ và tên</label>
+          <input v-model="displayName" placeholder="Nguyễn Văn A"/>
+          <label>Địa chỉ Email</label>
+          <input v-model="email" type="email" placeholder="ban@example.com"/>
+          <label>Mật khẩu (tối thiểu 6 ký tự)</label>
+          <input v-model="password" type="password" placeholder="••••••••"/>
+          <button class="btn" :disabled="busy" @click="register">
+            <span v-if="busy" class="spin"></span>Tạo tài khoản
+          </button>
+        </div>
+
+        <!-- OTP VERIFY -->
+        <div v-else-if="tab==='otp'" key="otp">
+          <h2 class="form-h">Xác nhận email</h2>
+          <p class="form-note">Mã OTP 6 số đã gửi đến <strong>{{ otpEmail }}</strong>.<br>Kiểm tra cả hộp thư Spam nếu không thấy.</p>
+          <label>Mã OTP</label>
+          <input v-model="otpCode" type="text" inputmode="numeric" maxlength="6"
+                 placeholder="_ _ _ _ _ _"
+                 style="font-size:28px;letter-spacing:10px;text-align:center;font-weight:700"
+                 @keyup.enter="verifyOtp"/>
+          <button class="btn" :disabled="busy||otpCode.length<6" @click="verifyOtp">
+            <span v-if="busy" class="spin"></span>Xác nhận
+          </button>
+          <button class="link" :disabled="busy" @click="resendOtp">Gửi lại mã OTP</button>
+          <button class="link" @click="switchTab('register')">← Quay lại</button>
+        </div>
+
+        <!-- FORGOT -->
+        <div v-else key="forgot">
+          <h2 class="form-h">Đặt lại mật khẩu</h2>
+          <p class="form-note">Nhập địa chỉ email đã đăng ký. Hệ thống sẽ gửi link đặt lại mật khẩu.</p>
+          <label>Địa chỉ Email</label>
+          <input v-model="email" type="email" placeholder="ban@example.com" @keyup.enter="resetPw"/>
+          <button class="btn" :disabled="busy" @click="resetPw">
+            <span v-if="busy" class="spin"></span>Gửi link đặt lại
+          </button>
+          <button class="link" @click="switchTab('login')">← Quay lại đăng nhập</button>
+        </div>
+        </transition>
+
+        <div v-if="msg" class="alert" :class="msgType">{{ msg }}</div>
+        <div class="demo-flag">
+          {{ fb ? '◉ FIREBASE · xác thực trực tuyến' : backend ? '◉ SQLITE · xác thực cục bộ' : '◉ DEMO MODE · lưu vào localStorage' }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== APP =================== -->
+  <div class="shell" v-else>
+
+      <!-- ===== LEFT SIDEBAR (full height) ===== -->
+      <nav class="sidebar">
+        <div class="nav-section-label">KHÁM PHÁ</div>
+        <button class="nav-btn" :class="{on:navPage==='intro'}" @click="navPage='intro'">
+          <span class="nav-icon">📋</span>
+          <span class="nav-text">
+            <span class="nav-title">Giới thiệu</span>
+            <span class="nav-sub">Tổng quan hệ thống</span>
+          </span>
+        </button>
+        <button class="nav-btn" :class="{on:navPage==='guide'}" @click="navPage='guide'">
+          <span class="nav-icon">📖</span>
+          <span class="nav-text">
+            <span class="nav-title">Hướng dẫn</span>
+            <span class="nav-sub">Cách sử dụng từng bước</span>
+          </span>
+        </button>
+        <div class="nav-sep"></div>
+        <div class="nav-section-label">NỀN TẢNG</div>
+        <button class="nav-btn" :class="{on:navPage==='server'}" @click="navPage='server'">
+          <span class="nav-led"></span>
+          <span class="nav-text">
+            <span class="nav-title">Server</span>
+            <span class="nav-sub">RTX 3080 · 797 mô hình</span>
+          </span>
+        </button>
+        <button class="nav-btn edge-btn" :class="{on:navPage==='edge'}" @click="navPage='edge'">
+          <span class="nav-led"></span>
+          <span class="nav-text">
+            <span class="nav-title">Edge</span>
+            <span class="nav-sub">Jetson Nano · SSH benchmark</span>
+          </span>
+        </button>
+      </nav>
+
+      <!-- RIGHT COLUMN: topbar + content + footer -->
+      <div class="shell-right">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="logo">
+        <span class="dot"></span>
+        <div class="logo-text">
+          <div class="logo-name">EdgeBench <em>Predictor</em></div>
+          <div class="logo-sub">GRADUATION THESIS · EDGE–CLOUD CONTINUUM · 2026</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <div class="avatar">{{ initials }}</div>
+          <div class="user-info">
+            <div class="ui-name">{{ user.displayName || user.email }}</div>
+            <div class="ui-badge">RESEARCHER</div>
+          </div>
+        </div>
+        <button class="ghost" @click="logout">Đăng xuất</button>
+      </div>
+    </div>
+
+      <!-- ===== MAIN CONTENT ===== -->
+      <div class="main-content">
+
+    <!-- ---- INTRO PAGE ---- -->
+    <div v-if="navPage==='intro'" class="page-intro">
+      <div class="page-hero">
+        <h2>EdgeBench <em>Predictor</em></h2>
+        <p>Hệ thống dự đoán hiệu năng mô hình Deep Learning trên hai nền tảng <strong>NVIDIA RTX 3080</strong> (cloud) và <strong>Jetson Nano</strong> (edge). Sử dụng mô hình CatBoost được huấn luyện từ dữ liệu benchmark thực tế để dự đoán 4 chỉ số hiệu năng trong vài giây.</p>
+      </div>
+      <div class="feat-grid">
+        <div class="feat-card">
+          <div class="fc-icon">⚡</div>
+          <h4>Dự đoán tức thì — Server RTX 3080</h4>
+          <p>Nhập tên mô hình timm và nhận kết quả dự đoán accuracy, latency, throughput, energy consumption trên NVIDIA RTX 3080 trong chưa đầy 1 giây.</p>
+        </div>
+        <div class="feat-card">
+          <div class="fc-icon">🔌</div>
+          <h4>Benchmark thực tế — Edge Jetson Nano</h4>
+          <p>Kết nối SSH tới thiết bị Jetson Nano, chạy benchmark trực tiếp và thu thập số liệu thực tế. Sau đó so sánh và đánh giá với dự đoán từ CatBoost.</p>
+        </div>
+        <div class="feat-card">
+          <div class="fc-icon">📂</div>
+          <h4>Import file mô hình (.pth, .safetensors…)</h4>
+          <p>Upload file mô hình PyTorch trực tiếp. Hệ thống đọc nội dung, trích xuất tham số, tự động khớp với dataset để đưa ra dự đoán chính xác.</p>
+        </div>
+        <div class="feat-card">
+          <div class="fc-icon">📊</div>
+          <h4>So sánh đa tiêu chí</h4>
+          <p>Đánh giá tổng hợp theo Accuracy, Latency, Throughput, Energy với hai chế độ: Tốt nhất đơn tiêu chí và Đa tiêu chí có trọng số.</p>
+        </div>
+      </div>
+      <div class="tech-row">
+        <span class="tech-chip">Vue 3</span>
+        <span class="tech-chip">FastAPI</span>
+        <span class="tech-chip">CatBoost</span>
+        <span class="tech-chip">PyTorch</span>
+        <span class="tech-chip">timm</span>
+        <span class="tech-chip">torchinfo</span>
+        <span class="tech-chip">safetensors</span>
+        <span class="tech-chip">SQLite</span>
+        <span class="tech-chip">WebSocket SSH</span>
+      </div>
+      <div class="feat-card" style="margin-bottom:0">
+        <h4 style="margin-bottom:8px">Thông tin nghiên cứu</h4>
+        <p>Luận văn tốt nghiệp 2026 · Edge–Cloud Continuum · Khoa Công nghệ Thông tin<br>
+        Dataset: 797 mô hình RTX 3080 · 304 mô hình Jetson Nano · Đo trực tiếp bằng CUDA Events &amp; Jetson Stats</p>
+      </div>
+    </div>
+
+    <!-- ---- GUIDE PAGE ---- -->
+    <div v-else-if="navPage==='guide'" class="page-guide">
+      <div class="page-hero">
+        <h2>Hướng dẫn <em>sử dụng</em></h2>
+        <p>Hướng dẫn từng bước để dự đoán và benchmark hiệu năng mô hình Deep Learning trên hai nền tảng.</p>
+      </div>
+      <div class="guide-sep">SERVER · RTX 3080 — Dự đoán nhanh</div>
+      <div class="guide-step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Chuyển sang tab Server · RTX 3080</h4>
+          <p>Nhấn nút <strong>Server · RTX 3080</strong> ở thanh điều hướng bên trái để vào trang dự đoán.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Nhập tên mô hình hoặc import file</h4>
+          <ul>
+            <li><strong>Nhập tên:</strong> Gõ tên model theo chuẩn timm (vd: resnet50, efficientnet_b0, vit_tiny_patch16_224). Dùng nút "Tra cứu 797 tên" để tìm kiếm.</li>
+            <li><strong>Import file:</strong> Nhấn "Import file mô hình" và chọn file .pth, .pt, .safetensors, .bin hoặc .ckpt. Hệ thống tự đọc và phân tích.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Nhấn "Dự đoán hiệu năng"</h4>
+          <p>Kết quả hiển thị ngay: <strong>Accuracy</strong> (độ chính xác ImageNet), <strong>Latency</strong> (ms/ảnh), <strong>Throughput</strong> (img/s), <strong>Energy</strong> (mJ/ảnh).</p>
+        </div>
+      </div>
+      <div class="guide-sep">EDGE · JETSON NANO — Benchmark thực tế</div>
+      <div class="guide-step">
+        <div class="step-num">1</div>
+        <div>
+          <h4>Chuyển sang tab Edge · Jetson Nano</h4>
+          <p>Nhấn <strong>Edge · Jetson Nano</strong> ở thanh điều hướng trái. Chọn tab <strong>"Thu thập (SSH → flops_csv2.py)"</strong>.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">2</div>
+        <div>
+          <h4>Nhập thông tin kết nối SSH</h4>
+          <ul>
+            <li>Host / địa chỉ IP của Jetson Nano (vd: 192.168.0.119)</li>
+            <li>Username và Password</li>
+            <li>Tên mô hình cần benchmark (vd: resnet18)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">3</div>
+        <div>
+          <h4>Nhấn "Chạy benchmark" và chờ kết quả</h4>
+          <p>Terminal hiển thị output realtime qua WebSocket. Sau khi hoàn tất, chuyển sang tab <strong>"Dự đoán + đánh giá"</strong> để xem kết quả so sánh.</p>
+        </div>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">4</div>
+        <div>
+          <h4>Đánh giá và so sánh</h4>
+          <p>Nhập tên model trong tab Dự đoán để xem kết quả CatBoost, so sánh với số liệu benchmark thực tế, đánh giá theo đơn tiêu chí hoặc đa tiêu chí.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- SERVER / EDGE CONTENT ---- -->
+    <div v-else>
+    <transition name="fade" mode="out-in">
+
+    <!-- ---- SERVER MODE ---- -->
+    <div :key="mode+jtab" v-if="mode==='server'">
+      <div class="panel panel-server">
+        <div class="panel-header">
+          <div class="panel-icon">⚡</div>
+          <div>
+            <h3>Dự đoán hiệu năng trên RTX 3080</h3>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <!-- Input side -->
+          <div>
+            <div class="label-row">
+              <label>Tên mô hình (timm)</label>
+              <button class="search-toggle" type="button" @click="openModelSearch">
+                {{ showModelSearch ? '✕ Đóng' : '🔍 Tra cứu 797 tên' }}
+              </button>
+            </div>
+            <input v-model="query" placeholder="vd: resnet50, efficientnet_b0, convnext_tiny" @keyup.enter="predict('rtx')"/>
+            <!-- Search panel -->
+            <div v-if="showModelSearch" class="model-search-panel">
+              <input class="model-search-input" v-model="modelSearch" placeholder="Tìm tên model, vd: resnet, vit, efficientnet…" @input="filterModels"/>
+              <div class="model-search-meta">
+                <span v-if="modelListLoading">Đang tải danh sách…</span>
+                <span v-else>Hiển thị {{ modelSearchResults.length }} / {{ modelList.length }} tên hợp lệ · click để dùng</span>
+              </div>
+              <div class="model-results">
+                <button v-for="n in modelSearchResults" :key="n" class="model-chip" @click="selectModel(n)">{{ n }}</button>
+              </div>
+            </div>
+            <!-- Format hint -->
+            <div class="format-hint">
+              💡 <strong>Định dạng timm:</strong> <code>family[_variant][_resolution]</code>
+              — Đặt tên file .pth/.pt theo chuẩn này để import khớp.
+              Ví dụ: <em>resnet50.pth</em>, <em>vit_base_patch16_224.pt</em>, <em>efficientnet_b0.onnx</em>
+            </div>
+            <div class="hdivider" style="margin:10px 0 6px">HOẶC IMPORT FILE</div>
+            <div class="import-row">
+              <label class="import-btn-label" for="rtxFileInput">
+                <input type="file" id="rtxFileInput" ref="rtxFileInput" style="display:none" @change="onFileImport" accept=".pt,.pth,.onnx,.cbm,.h5,.pkl,.bin,.safetensors,.py,.torchscript">
+                ↑ Import file mô hình
+              </label>
+              <span v-if="importedFile" class="imported-chip">{{ importedFile }}</span>
+            </div>
+            <!-- Thông báo: đang upload file .pth -->
+            <div v-if="importStatus==='uploading'" class="import-notice uploading">
+              <strong><span class="spin" style="display:inline-block;margin-right:6px;vertical-align:middle"></span>Đang đọc file…</strong>
+              <span class="import-filename">Đang upload và phân tích "{{ importedFile }}"…</span>
+            </div>
+            <!-- Thông báo: file .pth khớp param với model trong dataset -->
+            <div v-if="importStatus==='file-match'" class="import-notice ok">
+              <strong>✅ Khớp với "{{ importMatchedModel }}" trong dataset</strong>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · dùng cached features</span>
+            </div>
+            <!-- Thông báo: file .pth là full model object, tính được MACs chính xác -->
+            <div v-if="importStatus==='file-computed'" class="import-notice timm-only">
+              <strong>🔵 Đọc thành công — features tính từ model object</strong>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · MACs chính xác</span>
+            </div>
+            <!-- Thông báo: chỉ có state dict, MACs là ước tính thô -->
+            <div v-if="importStatus==='file-estimated'" class="import-notice warn">
+              <strong>⚠️ State dict only — MACs là ước tính thô</strong>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · độ chính xác thấp hơn bình thường</span>
+            </div>
+            <!-- Thông báo: đang convert + phân tích (.safetensors/.bin/.ckpt) -->
+            <div v-if="importStatus==='converting'" class="import-notice uploading">
+              <strong><span class="spin" style="display:inline-block;margin-right:6px;vertical-align:middle"></span>Đang chuyển đổi…</strong>
+              <span class="import-filename">Đang convert .{{ importExt }} sang .pth và phân tích…</span>
+            </div>
+            <!-- Thông báo: convert thành công + khớp dataset -->
+            <div v-if="importStatus==='converted-match'" class="import-notice ok">
+              <strong>✅ Đã convert .{{ importExt }} → khớp "{{ importMatchedModel }}"</strong>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · dùng cached features</span>
+            </div>
+            <!-- Thông báo: convert thành công, không khớp dataset -->
+            <div v-if="importStatus==='converted-estimated'" class="import-notice warn">
+              <strong>⚠️ Đã convert .{{ importExt }} — MACs là ước tính thô</strong>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · không khớp dataset</span>
+            </div>
+            <!-- Thông báo: định dạng không thể convert -->
+            <div v-if="importStatus==='not-feasible'" class="import-notice danger">
+              <strong>🚫 Định dạng .{{ importExt }} không thể chuyển đổi tự động</strong>
+              <span class="import-filename">Chỉ hỗ trợ: .pth · .pt · .safetensors · .bin · .ckpt</span>
+            </div>
+            <!-- Thông báo: lỗi đọc file -->
+            <div v-if="importStatus==='file-error'" class="import-notice danger">
+              <strong>🔴 Lỗi đọc file</strong>
+              <span class="import-filename">{{ importErrorMsg }}</span>
+            </div>
+            <!-- Thông báo name-based (khi dùng ô nhập tay + validate) -->
+            <div v-if="importStatus==='match'" class="import-notice ok">
+              <strong>✅ Tên mô hình có trong dataset</strong>
+              <span class="import-filename">"{{ importedFile }}" — dùng cached features, đang dự đoán…</span>
+            </div>
+            <div v-if="importStatus==='timm-only'" class="import-notice timm-only">
+              <strong>🔵 Mô hình timm hợp lệ — chưa có trong dataset</strong>
+              <span class="import-filename">"{{ importedFile }}" — đang tính features real-time…</span>
+            </div>
+            <div v-if="importStatus==='converted'" class="import-notice converted">
+              <strong>↻ Đã chuyển sang: {{ query }}</strong>
+              <span class="import-filename">Đang dự đoán với tên đã chọn…</span>
+            </div>
+            <div v-if="importStatus==='nomatch'" class="import-notice danger">
+              <strong>🔴 Không nhận dạng được trong thư viện timm</strong>
+              <span class="import-filename">"{{ importedFile }}" không phải tên mô hình timm hợp lệ.</span>
+              <button class="convert-btn" @click="showConvert=!showConvert">
+                {{ showConvert ? 'Ẩn gợi ý' : 'Thử với tên tương tự từ dataset' }}
+              </button>
+              <div v-if="showConvert" class="sug-panel">
+                <div v-if="importSugs.length">
+                  <p>Chọn tên mô hình tương tự trong dataset:</p>
+                  <div class="sug-chips">
+                    <button v-for="s in importSugs" :key="s" class="sug-chip" @click="applyConvert(s)">{{ s }}</button>
+                  </div>
+                </div>
+                <div v-else>
+                  <p>Không tìm thấy tên tương tự. Thử dự đoán trực tiếp với tên file:</p>
+                  <button class="sug-direct" @click="applyConvert(importedFile)">Dự đoán với "{{ importedFile }}"</button>
+                </div>
+              </div>
+            </div>
+            <div class="field-row" style="margin-top:12px">
+              <div><label>Optimal Batch Size</label><input v-model="optBs" placeholder="auto"/></div>
+              <div><label>Max Batch Size</label><input v-model="maxBs" placeholder="auto"/></div>
+            </div>
+            <button class="btn" :disabled="busy2" @click="predict('rtx')">
+              <span v-if="busy2" class="spin"></span>Dự đoán hiệu năng
+            </button>
+            <span class="suggest-label">Mô hình phổ biến — nhấn để điền nhanh:</span>
+            <div class="suggest">
+              <button v-for="m in suggestions('rtx')" :key="m" @click="query=m;predict('rtx')">{{ m }}</button>
+            </div>
+          </div>
+
+          <!-- Result side -->
+          <div>
+            <div v-if="result">
+              <div class="metrics">
+                <div class="metric m-acc">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↑ tốt hơn</div>
+                  <div class="mlabel">Accuracy</div>
+                  <div class="mval">{{ result.acc.toFixed(2) }}<span class="munit">% top-1</span></div>
+                  <div class="mdesc">Độ chính xác ImageNet</div>
+                </div>
+                <div class="metric m-lat">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↓ tốt hơn</div>
+                  <div class="mlabel">Latency</div>
+                  <div class="mval">{{ fmtLat(result.lat) }}<span class="munit">ms/ảnh</span></div>
+                  <div class="mdesc">Thời gian suy luận mỗi ảnh</div>
+                </div>
+                <div class="metric m-thr">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↑ tốt hơn</div>
+                  <div class="mlabel">Throughput</div>
+                  <div class="mval">{{ fmtNum(result.thr) }}<span class="munit">img/s</span></div>
+                  <div class="mdesc">Ảnh xử lý được mỗi giây</div>
+                </div>
+                <div class="metric m-eng">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↓ tốt hơn</div>
+                  <div class="mlabel">Energy</div>
+                  <div class="mval">{{ fmtEng(result.eng) }}<span class="munit">mJ/ảnh</span></div>
+                  <div class="mdesc">Tiêu thụ năng lượng GPU</div>
+                </div>
+              </div>
+              <span class="src-tag">{{ result.src }}</span>
+            </div>
+            <div v-else class="empty-metrics">
+              <span class="em-icon">◌</span>
+              <div>Nhập tên mô hình rồi nhấn<br><strong>Dự đoán hiệu năng</strong> để xem kết quả</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- JETSON MODE ---- -->
+    <div :key="'j'+jtab" v-else>
+      <div class="subtabs">
+        <button :class="{on:jtab==='collect'}" @click="jtab='collect'">
+          <span class="stnum">1</span>Thu thập (SSH → flops_csv2.py)
+        </button>
+        <button :class="{on:jtab==='predict'}" @click="jtab='predict'">
+          <span class="stnum">2</span>Dự đoán + đánh giá
+        </button>
+      </div>
+
+      <!-- Tab 1: Collect -->
+      <div class="panel panel-jetson" v-if="jtab==='collect'">
+        <div class="panel-header">
+          <div class="panel-icon">🔌</div>
+          <div>
+            <h3>Thu thập số đo trực tiếp trên Jetson Nano</h3>
+          </div>
+        </div>
+        <div class="ssh-grid">
+          <div><label>Host / Địa chỉ IP</label><input v-model="ssh.host" placeholder="192.168.0.119"/></div>
+          <div><label>Username</label><input v-model="ssh.user" placeholder="tb1"/></div>
+          <div><label>Password</label><input v-model="ssh.password" type="password" placeholder="••••••" autocomplete="new-password"/></div>
+          <div><label>Tên mô hình</label><input v-model="ssh.model" placeholder="resnet18"/></div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <button class="run-btn" :disabled="termRunning" @click="runCollect">
+              <span v-if="termRunning && !termPaused" class="spin"></span>
+              {{ termRunning ? (termPaused ? '⏸ Đang tạm dừng…' : 'Đang chạy…') : 'Chạy benchmark' }}
+            </button>
+            <button v-if="termRunning && !termPaused" class="stop-btn" @click="pauseCollect">⏸ Tạm dừng</button>
+            <button v-if="termPaused" class="resume-btn" @click="resumeCollect">&#9654; Tiếp tục</button>
+            <button v-if="termPaused" class="kill-btn" @click="killCollect">&#10005; Hủy</button>
+          </div>
+        </div>
+        <div class="term-head">
+          <span class="tdot t1"></span><span class="tdot t2"></span><span class="tdot t3"></span>
+          <span class="ttitle">{{ ssh.user || 'jetson' }}@nano: ~/edgebench</span>
+          <span class="tsep"></span>
+          <span class="tbadge">{{ termPaused ? 'PAUSED' : (termRunning ? 'RUNNING' : 'READY') }}</span>
+        </div>
+        <div class="term" ref="termEl"><span v-html="termHtml"></span><span class="cursor"></span></div>
+      </div>
+
+      <!-- Tab 2: Predict + Verdict -->
+      <div class="panel panel-jetson" v-else>
+        <div class="panel-header">
+          <div class="panel-icon">📊</div>
+          <div>
+            <h3>Dự đoán trên Jetson Nano + đánh giá khả năng triển khai</h3>
+          </div>
+        </div>
+        <div class="grid2">
+          <!-- Input + Verdict -->
+          <div>
+            <label>Tên mô hình (timm)</label>
+            <input v-model="query" placeholder="vd: mobilenetv3_small_100, resnet18" @keyup.enter="predict('jetson')"/>
+            <button class="btn" :disabled="busy2" @click="predict('jetson')">
+              <span v-if="busy2" class="spin"></span>Dự đoán &amp; đánh giá
+            </button>
+            <span class="suggest-label">Mô hình phổ biến:</span>
+            <div class="suggest">
+              <button v-for="m in suggestions('jetson')" :key="m" @click="query=m;predict('jetson')">{{ m }}</button>
+            </div>
+            <!-- Eval mode toggle -->
+            <div class="eval-toggle">
+              <span class="etlabel">ĐÁNH GIÁ:</span>
+              <button :class="{on:evalMode==='multi'}" @click="evalMode='multi'">Đa tiêu chí</button>
+              <button :class="{on:evalMode==='single'}" @click="evalMode='single'">Chọn tiêu chí</button>
+              <button class="info-btn" @click="showCriteria=true" title="Xem bảng tiêu chí">? Xem tiêu chí</button>
+            </div>
+            <!-- Single metric selector -->
+            <div v-if="evalMode==='single'" class="metric-sel">
+              <button :class="{on:evalMetric==='acc','sel-acc':true}" @click="evalMetric='acc'">Accuracy</button>
+              <button :class="{on:evalMetric==='thr','sel-thr':true}" @click="evalMetric='thr'">Throughput</button>
+              <button :class="{on:evalMetric==='lat','sel-lat':true}" @click="evalMetric='lat'">Latency</button>
+              <button :class="{on:evalMetric==='eng','sel-eng':true}" @click="evalMetric='eng'">Energy</button>
+            </div>
+            <!-- Verdict box -->
+            <div v-if="result && verdict" class="verdict" :class="verdict.cls">
+              <span class="vchip">{{ verdict.label }}</span>
+              <div class="vbody">
+                <strong>{{ verdict.head }}</strong>
+                <small>{{ verdict.detail }}</small>
+                <!-- Score bar for multi mode -->
+                <div v-if="evalMode==='multi' && verdict.scores" class="score-bar">
+                  <span v-for="(s,i) in verdict.scores" :key="i"
+                    :class="['filled', s===2?verdict.clsKey:s===1?'m':'w', {filled:s>0}]"
+                    :style="s===0?'opacity:.25':''"></span>
+                  <span v-for="n in (8-verdict.scores.reduce((a,b)=>a+b,0))" :key="'e'+n"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metrics -->
+          <div>
+            <div v-if="result">
+              <div class="metrics">
+                <div class="metric m-acc">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↑ tốt hơn</div>
+                  <div class="mlabel">Accuracy</div>
+                  <div class="mval">{{ result.acc.toFixed(2) }}<span class="munit">% top-1</span></div>
+                  <div class="mdesc">Độ chính xác ImageNet</div>
+                </div>
+                <div class="metric m-lat">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↓ tốt hơn</div>
+                  <div class="mlabel">Latency</div>
+                  <div class="mval">{{ fmtLat(result.lat) }}<span class="munit">ms/ảnh</span></div>
+                  <div class="mdesc">Thời gian suy luận mỗi ảnh</div>
+                </div>
+                <div class="metric m-thr">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↑ tốt hơn</div>
+                  <div class="mlabel">Throughput</div>
+                  <div class="mval">{{ fmtNum(result.thr) }}<span class="munit">img/s</span></div>
+                  <div class="mdesc">Ảnh xử lý được mỗi giây</div>
+                </div>
+                <div class="metric m-eng">
+                  <div class="metric-stripe"></div>
+                  <div class="arrow">↓ tốt hơn</div>
+                  <div class="mlabel">Energy</div>
+                  <div class="mval">{{ fmtEng(result.eng) }}<span class="munit">mJ/ảnh</span></div>
+                  <div class="mdesc">Tiêu thụ năng lượng GPU</div>
+                </div>
+              </div>
+              <span class="src-tag">{{ result.src }}</span>
+            </div>
+            <div v-else class="empty-metrics">
+              <span class="em-icon">◌</span>
+              <div>Nhập tên mô hình rồi nhấn<br><strong>Dự đoán &amp; đánh giá</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </transition>
+    </div><!-- end v-else server/edge -->
+
+      </div><!-- end .main-content -->
+
+    <!-- Criteria table modal -->
+    <div v-if="showCriteria" class="criteria-overlay" @click.self="showCriteria=false">
+      <div class="criteria-modal">
+        <h4>Bảng tiêu chí đánh giá — Jetson Nano</h4>
+        <table>
+          <thead>
+            <tr><th>Tiêu chí</th><th class="c-strong">MẠNH</th><th class="c-mid">TRUNG BÌNH</th><th class="c-weak">YẾU</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Accuracy</td><td class="c-strong">≥ 75%</td><td class="c-mid">≥ 65%</td><td class="c-weak">&lt; 65%</td></tr>
+            <tr><td>Latency</td><td class="c-strong">&lt; 50 ms</td><td class="c-mid">&lt; 150 ms</td><td class="c-weak">≥ 150 ms</td></tr>
+            <tr><td>Throughput</td><td class="c-strong">≥ 40 img/s</td><td class="c-mid">≥ 12 img/s</td><td class="c-weak">&lt; 12 img/s</td></tr>
+            <tr><td>Energy</td><td class="c-strong">&lt; 100 mJ/ảnh</td><td class="c-mid">&lt; 300 mJ/ảnh</td><td class="c-weak">≥ 300 mJ/ảnh</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--ink-soft);margin:14px 0 0">
+          Chế độ <strong>Đa tiêu chí</strong>: mỗi tiêu chí cho 0–2 điểm, tổng ≥ 6 → MẠNH, ≥ 3 → Trung bình, &lt; 3 → Yếu.<br>
+          Ngưỡng dựa trên dải đo thực tế Jetson Nano: Throughput 1.95–197 img/s (median ~11.8).
+        </p>
+        <button class="close-btn" @click="showCriteria=false">Đóng</button>
+      </div>
+    </div>
+
+    <footer>
+      <span>EdgeBench Predictor</span>
+      <span class="fsep">·</span>
+      <span>Luận văn tốt nghiệp 2026</span>
+      <span class="fsep">·</span>
+      <span>Vue 3 + FastAPI + CatBoost</span>
+      <span class="fsep">·</span>
+      <span>{{ mode==='server' ? 'RTX 3080 · Server Mode' : 'Jetson Nano · Edge Mode' }}</span>
+    </footer>
+      </div><!-- end .shell-right -->
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   CẤU HÌNH — dán Firebase config + URL backend của bạn vào đây
+   (Để trống firebaseConfig.apiKey -> tự chạy DEMO mode offline)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "",                 // <-- dán từ Firebase Console > Project settings
+  authDomain: "",
+  projectId: "",
+  appId: ""
+};
+const BACKEND_URL = "http://localhost:8000";       // vd "http://localhost:8000"  (FastAPI). Trống -> dùng dữ liệu demo embed.
+
+/* ---- dữ liệu demo (số đo thật trích từ CSV trong paper) ---- */
+const DEMO = {"rtx":[{"name":"convnext_tiny","acc":82.69,"lat":88259814.53,"thr":589.17,"eng":549223.81,"params":28589128,"macs":515465224,"act":90832056},{"name":"deit_small_patch16_224","acc":79.86,"lat":72841051.4,"thr":1208.14,"eng":274267.88,"params":22050664,"macs":79557352,"act":31471184},{"name":"densenet121","acc":76.48,"lat":41902685.11,"thr":553.82,"eng":630721.43,"params":7978856,"macs":4684375016,"act":94292688},{"name":"densenet169","acc":75.92,"lat":36070461.7,"thr":942.6,"eng":346715.91,"params":14149480,"macs":3359844328,"act":67714896},{"name":"efficientnet_b0","acc":77.7,"lat":45474128.41,"thr":2418.96,"eng":136944.83,"params":5288548,"macs":385825092,"act":32764360},{"name":"efficientnet_b1","acc":78.8,"lat":42306206.72,"thr":1323.68,"eng":249705.1,"params":7794184,"macs":743318840,"act":60540272},{"name":"efficientnet_b2","acc":80.61,"lat":46297381.2,"thr":950.38,"eng":348701.42,"params":9109994,"macs":1087545866,"act":80344980},{"name":"inception_v3","acc":78.8,"lat":47128016.23,"thr":891.26,"eng":352821.38,"params":23834568,"macs":5713217096,"act":47896912},{"name":"mnasnet_small","acc":66.2,"lat":69717999.8,"thr":6951.74,"eng":44267.44,"params":2030264,"macs":68342784,"act":10535456},{"name":"mobilenetv2_100","acc":72.94,"lat":45629005.56,"thr":1959.88,"eng":153562.32,"params":3504872,"macs":300775272,"act":32482256},{"name":"mobilenetv3_large_100","acc":77.91,"lat":61149159.36,"thr":2921.63,"eng":103208.59,"params":5483032,"macs":216597120,"act":21925120},{"name":"mobilenetv3_small_100","acc":67.64,"lat":66706467.1,"thr":8651.45,"eng":35746.93,"params":2542856,"macs":56515312,"act":6887712},{"name":"regnetx_002","acc":68.76,"lat":22250716.72,"thr":6198.05,"eng":56834.99,"params":2684792,"macs":199040872,"act":12661584},{"name":"regnety_004","acc":74.01,"lat":15994326.05,"thr":2042.5,"eng":151436.87,"params":4344144,"macs":401849056,"act":23315656},{"name":"resnet101","acc":82.32,"lat":21927020.36,"thr":295.33,"eng":1185455.22,"params":44549160,"macs":12894969704,"act":105471440},{"name":"resnet18","acc":73.16,"lat":24121493.03,"thr":2189.13,"eng":154091,"params":11689512,"macs":2998450536,"act":17007056},{"name":"resnet34","acc":77.94,"lat":24976070.03,"thr":869.9,"eng":406796.71,"params":21797672,"macs":6056105576,"act":26338256},{"name":"resnet50","acc":81.24,"lat":48447462.7,"thr":664.47,"eng":499730.17,"params":25557032,"macs":6758388584,"act":71630288},{"name":"resnext50_32x4d","acc":81.48,"lat":61688830.37,"thr":448.94,"eng":794400.57,"params":25028904,"macs":6991973992,"act":92490704},{"name":"vit_tiny_patch16_224","acc":75.45,"lat":86094296.65,"thr":2406.26,"eng":137226.47,"params":5717416,"macs":34470760,"act":15736592}],
+"jetson":[{"name":"resnet18","acc":69.75,"lat":27076950.14,"thr":36.91,"eng":69318.5,"params":11689512,"macs":1814083944,"act":10289616},{"name":"resnet34","acc":73.3,"lat":49439190.47,"thr":20.22,"eng":168118.43,"params":21797672,"macs":3663779432,"act":15934416},{"name":"resnet50","acc":76.16,"lat":67435823.5,"thr":14.83,"eng":159086.89,"params":25557032,"macs":4089238376,"act":43335120},{"name":"efficientnet_b0","acc":76.54,"lat":29500944.75,"thr":33.88,"eng":84613.99,"params":5246532,"macs":385825092,"act":30457832},{"name":"efficientnet_b1","acc":77.59,"lat":42483385.82,"thr":23.53,"eng":154478.07,"params":7732136,"macs":569666840,"act":42835856},{"name":"mobilenetv2_100","acc":72.91,"lat":19029630.47,"thr":52.53,"eng":28292.52,"params":3470760,"macs":300775272,"act":30180432},{"name":"mobilenetv3_small_100","acc":67.92,"lat":6017718.98,"thr":166.09,"eng":19350.01,"params":2530744,"macs":56515312,"act":6447648},{"name":"mnasnet_small","acc":66.2,"lat":7855627.25,"thr":127.24,"eng":28965.91,"params":2013336,"macs":68342784,"act":9877680},{"name":"resnext50_32x4d","acc":80.53,"lat":113990809.2,"thr":8.77,"eng":410720.74,"params":25028904,"macs":4230549096,"act":55954384},{"name":"densenet121","acc":74.75,"lat":66082479.94,"thr":15.13,"eng":164971.26,"params":7895208,"macs":2834162664,"act":57042640},{"name":"inception_v3","acc":77.47,"lat":66795943.06,"thr":14.97,"eng":203201.16,"params":23834568,"macs":2837956552,"act":15467136},{"name":"vit_tiny_patch16_224","acc":75.45,"lat":33292915.42,"thr":30.03,"eng":125416.08,"params":5679400,"macs":34470760,"act":14372372},{"name":"deit_small_patch16_224","acc":79.86,"lat":80214666.61,"thr":12.46,"eng":192651.27,"params":21974632,"macs":79557352,"act":28742744},{"name":"resnet101","acc":81.49,"lat":118561149.2,"thr":8.43,"eng":340069.94,"params":44549160,"macs":7801511784,"act":63806928},{"name":"efficientnet_b2","acc":79.32,"lat":45735429.28,"thr":21.86,"eng":156203.65,"params":9042426,"macs":658979850,"act":44909284},{"name":"mobilenetv3_large_100","acc":75.78,"lat":15722573.88,"thr":63.58,"eng":59989.55,"params":5458632,"macs":216597120,"act":20493824},{"name":"densenet169","acc":75.92,"lat":84697002.37,"thr":11.8,"eng":259753.33,"params":13991080,"macs":3359844328,"act":67713232},{"name":"regnetx_002","acc":68.76,"lat":11858927.65,"thr":84.3,"eng":50036.84,"params":2663944,"macs":199040872,"act":12661216},{"name":"regnety_004","acc":75.59,"lat":21388325.86,"thr":46.75,"eng":63886.99,"params":4316992,"macs":401849056,"act":23315216}]};
+
+/* ---- khởi tạo Firebase nếu có config ---- */
+let fbAuth=null, fbDb=null, fbReady=false;
+try{
+  if(firebaseConfig.apiKey && window.firebase){
+    firebase.initializeApp(firebaseConfig);
+    fbAuth=firebase.auth(); fbDb=firebase.firestore(); fbReady=true;
+  }
+}catch(e){ console.warn('Firebase init lỗi, chuyển demo mode:',e); }
+
+const { createApp } = Vue;
+createApp({
+  data(){return{
+    screen:'auth', tab:'login', fb:fbReady,
+    email:'', password:'', displayName:'',
+    otpCode:'', otpEmail:'',
+    busy:false, busy2:false, msg:'', msgType:'err',
+    user:{}, backend:!!BACKEND_URL,
+    navPage:'server', mode:'server', jtab:'collect',
+    query:'', optBs:'', maxBs:'', result:null,
+    evalMode:'multi', evalMetric:'thr', showCriteria:false,
+    importedFile:null, importStatus:null, importSugs:[], showConvert:false,
+    importExt:null, importMatchedModel:null, importParamCount:0, importErrorMsg:null,
+    showModelSearch:false, modelSearch:'', modelList:[], modelListLoading:false, modelSearchResults:[],
+    ssh:{host:'192.168.0.119',user:'tb1',password:'',model:'resnet18'},
+    termHtml:'<span class="c-dim">// terminal sẵn sàng — nhấn "Chạy benchmark"</span>\n',
+    termRunning:false, termPaused:false,
+    ws:null,
+  }},
+  computed:{
+    initials(){const n=(this.user.displayName||this.user.email||'U').trim();return n.split(/[ @.]/)[0].slice(0,2).toUpperCase();},
+    verdict(){
+      if(!this.result||this.mode!=='jetson')return null;
+      if(this.evalMode==='single') return this.evaluateSingle(this.evalMetric,this.result);
+      return this.evaluateMulti(this.result);
+    }
+  },
+  watch:{
+    navPage(v){
+      if(v==='server'){ this.mode='server'; }
+      else if(v==='edge'){ this.mode='jetson'; }
+      document.body.classList.toggle('theme-jetson', this.mode==='jetson' && this.screen==='app');
+      if(v==='server'||v==='edge'){
+        this.result=null; this.query=''; this.importedFile=null; this.importStatus=null;
+        this.importSugs=[]; this.showConvert=false; this.importExt=null;
+        this.importMatchedModel=null; this.importParamCount=0; this.importErrorMsg=null;
+        this.showModelSearch=false; this.modelSearch=''; this.modelSearchResults=[];
+      }
+    },
+    mode(v){ document.body.classList.toggle('theme-jetson', v==='jetson' && this.screen==='app'); },
+    screen(v){ document.body.classList.toggle('theme-jetson', this.mode==='jetson' && v==='app'); if(v==='app') this.$nextTick(()=>this.tryReconnect()); },
+  },
+  mounted(){
+    if(fbReady){
+      fbAuth.onAuthStateChanged(u=>{ if(u){ this.user={email:u.email,displayName:u.displayName,uid:u.uid}; this.screen='app'; }});
+    } else if(BACKEND_URL){
+      const saved=localStorage.getItem('eb_user');
+      if(saved){ this.user=JSON.parse(saved); this.screen='app'; }
+    } else {
+      const saved=localStorage.getItem('eb_session');
+      if(saved){ this.user=JSON.parse(saved); this.screen='app'; }
+    }
+    document.body.classList.toggle('theme-jetson', this.mode==='jetson' && this.screen==='app');
+  },
+  methods:{
+    switchTab(t){this.tab=t;this.msg='';},
+    flash(m,type='err'){this.msg=m;this.msgType=type;},
+    /* ---------- AUTH ---------- */
+    async login(){
+      if(!this.email||!this.password)return this.flash('Nhập email và mật khẩu.');
+      this.busy=true;this.msg='';
+      try{
+        if(fbReady){ await fbAuth.signInWithEmailAndPassword(this.email,this.password); }
+        else if(BACKEND_URL){
+          const r=await fetch(BACKEND_URL+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:this.email,password:this.password})});
+          const d=await r.json();
+          if(!r.ok)throw{message:d.detail||'Lỗi đăng nhập'};
+          const u={email:d.email,displayName:d.display_name};
+          localStorage.setItem('eb_token',d.token); localStorage.setItem('eb_user',JSON.stringify(u));
+          this.user=u; this.screen='app';
+        }
+        else{
+          const users=JSON.parse(localStorage.getItem('eb_users')||'{}');
+          const u=users[this.email];
+          if(!u||u.password!==this.password)throw{code:'demo/invalid'};
+          this.user={email:this.email,displayName:u.displayName};
+          localStorage.setItem('eb_session',JSON.stringify(this.user)); this.screen='app';
+        }
+      }catch(e){ this.flash(this.authErr(e)); }
+      this.busy=false;
+    },
+    async register(){
+      if(!this.email||this.password.length<6)return this.flash('Email hợp lệ và mật khẩu ≥ 6 ký tự.');
+      this.busy=true;this.msg='';
+      try{
+        if(fbReady){
+          const cred=await fbAuth.createUserWithEmailAndPassword(this.email,this.password);
+          await cred.user.updateProfile({displayName:this.displayName});
+          await fbDb.collection('users').doc(cred.user.uid).set({
+            displayName:this.displayName,email:this.email,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+          this.user={email:this.email,displayName:this.displayName,uid:cred.user.uid};
+        } else if(BACKEND_URL){
+          const r=await fetch(BACKEND_URL+'/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:this.email,password:this.password,display_name:this.displayName})});
+          const d=await r.json();
+          if(!r.ok)throw{message:d.detail||'Lỗi đăng ký'};
+          if(d.status==='otp_sent'){
+            this.otpEmail=this.email; this.otpCode='';
+            this.tab='otp';
+            this.flash('Mã OTP đã gửi đến '+this.email+'. Vui lòng kiểm tra hộp thư.','ok');
+            this.busy=false; return;
+          }
+          const u={email:d.email,displayName:d.display_name};
+          localStorage.setItem('eb_token',d.token); localStorage.setItem('eb_user',JSON.stringify(u));
+          this.user=u;
+        } else {
+          const users=JSON.parse(localStorage.getItem('eb_users')||'{}');
+          if(users[this.email])throw{code:'auth/email-already-in-use'};
+          users[this.email]={password:this.password,displayName:this.displayName};
+          localStorage.setItem('eb_users',JSON.stringify(users));
+          this.user={email:this.email,displayName:this.displayName};
+          localStorage.setItem('eb_session',JSON.stringify(this.user));
+        }
+        this.screen='app';
+      }catch(e){ this.flash(this.authErr(e)); }
+      this.busy=false;
+    },
+    async verifyOtp(){
+      if(this.otpCode.length<6) return this.flash('Nhập đủ 6 số OTP.');
+      this.busy=true; this.msg='';
+      try{
+        const r=await fetch(BACKEND_URL+'/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:this.otpEmail,otp:this.otpCode})});
+        const d=await r.json();
+        if(!r.ok) throw{message:d.detail||'OTP không hợp lệ'};
+        const u={email:d.email,displayName:d.display_name};
+        localStorage.setItem('eb_token',d.token); localStorage.setItem('eb_user',JSON.stringify(u));
+        this.user=u; this.screen='app';
+      }catch(e){ this.flash(e.message||'OTP không hợp lệ.'); }
+      this.busy=false;
+    },
+    async resendOtp(){
+      this.busy=true; this.msg='';
+      try{
+        const r=await fetch(BACKEND_URL+'/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:this.email,password:this.password,display_name:this.displayName})});
+        const d=await r.json();
+        if(!r.ok) throw{message:d.detail||'Lỗi gửi lại OTP'};
+        this.otpCode='';
+        this.flash('Đã gửi lại mã OTP đến '+this.otpEmail+'.','ok');
+      }catch(e){ this.flash(e.message||'Không thể gửi lại OTP.'); }
+      this.busy=false;
+    },
+    async resetPw(){
+      if(!this.email)return this.flash('Nhập email để nhận link đặt lại.');
+      this.busy=true;this.msg='';
+      try{
+        if(fbReady){ await fbAuth.sendPasswordResetEmail(this.email);
+          this.flash('Đã gửi link đặt lại tới '+this.email,'ok'); }
+        else{ this.flash('DEMO mode: bỏ qua gửi email. (Bản thật sẽ gửi qua Firebase.)','ok'); }
+      }catch(e){ this.flash(this.authErr(e)); }
+      this.busy=false;
+    },
+    logout(){ if(fbReady)fbAuth.signOut(); localStorage.removeItem('eb_token');localStorage.removeItem('eb_user');localStorage.removeItem('eb_session'); this.user={};this.result=null;this.screen='auth';this.tab='login'; },
+    authErr(e){const m={'auth/invalid-credential':'Email hoặc mật khẩu sai.','auth/wrong-password':'Sai mật khẩu.',
+      'auth/user-not-found':'Tài khoản không tồn tại.','auth/email-already-in-use':'Email đã được đăng ký.',
+      'auth/invalid-email':'Email không hợp lệ.','demo/invalid':'Email hoặc mật khẩu sai (demo).'};
+      return m[e.code]||('Lỗi: '+(e.message||e.code||'không xác định'));},
+
+    /* ---------- MODEL SEARCH (RTX3080) ---------- */
+    async openModelSearch(){
+      this.showModelSearch=!this.showModelSearch;
+      if(this.showModelSearch && !this.modelList.length) await this.loadModelList();
+    },
+    async loadModelList(){
+      this.modelListLoading=true;
+      if(!BACKEND_URL){ this.modelList=DEMO['rtx'].map(d=>d.name); this.modelSearchResults=this.modelList.slice(0,30); this.modelListLoading=false; return; }
+      try{
+        const r=await fetch(BACKEND_URL+'/models/rtx');
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const d=await r.json();
+        this.modelList=d.models||[];
+        this.modelSearchResults=this.modelList.slice(0,30);
+      }catch(e){ this.modelList=DEMO['rtx'].map(d=>d.name); this.modelSearchResults=this.modelList.slice(0,30); }
+      this.modelListLoading=false;
+    },
+    filterModels(){
+      const q=this.modelSearch.trim().toLowerCase();
+      this.modelSearchResults=q ? this.modelList.filter(n=>n.includes(q)).slice(0,40) : this.modelList.slice(0,30);
+    },
+    selectModel(name){ this.query=name; this.showModelSearch=false; this.modelSearch=''; this.modelSearchResults=[]; },
+    /* ---------- IMPORT FILE (RTX3080) ---------- */
+    async onFileImport(e){
+      const file=e.target.files[0]; if(!file)return;
+      const ext=file.name.includes('.')?file.name.split('.').pop().toLowerCase():'';
+      const name=this.norm(file.name);
+      this.importedFile=name; this.importStatus=null; this.importSugs=[]; this.showConvert=false;
+      this.importExt=ext; this.importMatchedModel=null; this.importParamCount=0; this.importErrorMsg=null;
+      this.result=null;
+      if(this.$refs.rtxFileInput) this.$refs.rtxFileInput.value='';
+
+      const DIRECT_EXTS=['pth','pt'];
+      const CONVERT_EXTS=['safetensors','bin','ckpt'];
+
+      /* Định dạng không hỗ trợ → báo ngay, không upload */
+      if(!DIRECT_EXTS.includes(ext) && !CONVERT_EXTS.includes(ext)){
+        this.importStatus='not-feasible';
+        return;
+      }
+
+      /* Demo mode (không có backend) → fallback dùng tên file */
+      if(!BACKEND_URL){
+        const hit=DEMO['rtx'].find(d=>d.name===name);
+        this.importSugs=hit?[]:DEMO['rtx'].filter(d=>d.name.includes(name.split('_')[0])||name.includes(d.name.split('_')[0])).map(d=>d.name).slice(0,6);
+        this.importStatus=hit?'match':'nomatch';
+        if(hit){this.query=name; await this.predict('rtx');}
+        return;
+      }
+
+      /* Upload file lên /predict-file */
+      this.importStatus=CONVERT_EXTS.includes(ext)?'converting':'uploading'; this.busy2=true;
+      try{
+        const fd=new FormData();
+        fd.append('platform','rtx');
+        fd.append('file',file);
+        if(this.optBs) fd.append('optimal_bs',this.optBs);
+        if(this.maxBs) fd.append('max_bs',this.maxBs);
+
+        const r=await fetch(BACKEND_URL+'/predict-file',{method:'POST',body:fd});
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const d=await r.json();
+
+        if(d.unsupported_format){
+          this.importStatus='not-feasible'; this.importExt=d.ext||ext;
+          return;
+        }
+        if(d.error){
+          this.importStatus='file-error'; this.importErrorMsg=d.error;
+          return;
+        }
+
+        /* Thành công — hiển thị kết quả */
+        this.importParamCount=d.param_count||0;
+        const note=d.match_note||'';
+        const wasConverted=CONVERT_EXTS.includes(ext);
+        if(note.startsWith('param_match:') || note.startsWith('name_match:')){
+          this.importMatchedModel=d.matched_model||note.split(':')[1]||name;
+          this.importStatus=wasConverted?'converted-match':'file-match';
+        } else if(note==='full_model'){
+          this.importStatus='file-computed';
+        } else {
+          this.importStatus=wasConverted?'converted-estimated':'file-estimated';
+        }
+        this.result={
+          acc:d.accuracy, lat:d.latency, thr:d.throughput, eng:d.energy,
+          src:'CatBoost · file upload (RTX3080)'
+        };
+      }catch(err){
+        this.importStatus='file-error';
+        this.importErrorMsg=err.message;
+      }finally{
+        this.busy2=false;
+      }
+    },
+    async applyConvert(name){
+      this.query=name; this.importedFile=name; this.importStatus='converted'; this.showConvert=false;
+      await this.predict('rtx');
+    },
+    /* ---------- PREDICT ---------- */
+    norm(s){return (s||'').trim().toLowerCase().split('.')[0];},
+    suggestions(p){return DEMO[p].slice(0,6).map(d=>d.name);},
+    async predict(platform){
+      const q=this.norm(this.query);
+      if(!q)return;
+      this.busy2=true;this.result=null;
+      try{
+        if(BACKEND_URL){
+          const r=await fetch(BACKEND_URL+'/predict',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({platform,model:this.query,optimal_bs:this.optBs||null,max_bs:this.maxBs||null})});
+          if(!r.ok)throw new Error('backend '+r.status);
+          const d=await r.json();
+          if(d.error) throw new Error(d.error);
+          this.result={acc:d.accuracy,lat:d.latency,thr:d.throughput,eng:d.energy,src:'CatBoost · backend ('+platform.toUpperCase()+')'};
+        }else{
+          await new Promise(r=>setTimeout(r,420));
+          const hit=DEMO[platform].find(d=>d.name===q);
+          if(hit){ this.result={acc:hit.acc,lat:hit.lat,thr:hit.thr,eng:hit.eng,src:'số đo thật (demo dataset)'}; }
+          else { this.result=this.heuristic(platform,q); }
+        }
+      }catch(e){
+        if(this.importStatus){
+          this.flash('Tên mô hình "'+this.importedFile+'" không tìm thấy hoặc không hợp lệ. Vui lòng chọn tên khác từ danh sách tra cứu.');
+          this.importStatus=null; this.importedFile=null; this.showConvert=false;
+        } else {
+          this.flash('Dự đoán thất bại: '+e.message);
+        }
+      }
+      this.busy2=false;
+    },
+    heuristic(platform,q){
+      // ước lượng thô khi model không có trong demo dataset (nội suy theo từ khoá kích thước)
+      const base=DEMO[platform];
+      let ref=base.find(d=>q.includes('mobilenet')||q.includes('small')) ?
+              base.find(d=>d.name.includes('mobilenet')) : base.find(d=>d.name==='resnet50');
+      ref=ref||base[0];
+      const f=q.includes('large')||q.includes('101')||q.includes('152')?1.7:q.includes('small')||q.includes('tiny')?0.55:1;
+      return {acc:Math.min(88,ref.acc*(0.96+0.04*f)),lat:ref.lat*f,thr:ref.thr/f,eng:ref.eng*f,
+              src:'ước lượng heuristic (model ngoài demo dataset)'};
+    },
+    /* ---------- VERDICT ---------- */
+    _scoreOne(metric, r){
+      // returns 2=MẠNH, 1=TB, 0=YẾU
+      if(metric==='acc')  return r.acc>=75?2:r.acc>=65?1:0;
+      if(metric==='lat')  return r.lat<50e6?2:r.lat<150e6?1:0;   // ns
+      if(metric==='thr')  return r.thr>=40?2:r.thr>=12?1:0;
+      if(metric==='eng')  return r.eng<100000?2:r.eng<300000?1:0; // uJ
+      return 0;
+    },
+    evaluateMulti(r){
+      const keys=['acc','lat','thr','eng'];
+      const scores=keys.map(k=>this._scoreOne(k,r));
+      const total=scores.reduce((a,b)=>a+b,0);
+      let cls,label,head;
+      if(total>=6){cls='strong';label='MẠNH';head='Hiệu năng tổng thể tốt trên Jetson Nano';}
+      else if(total>=3){cls='mid';label='TRUNG BÌNH';head='Chạy được, có một số tiêu chí chưa tối ưu';}
+      else{cls='weak';label='YẾU';head='Không phù hợp triển khai trực tiếp trên Jetson Nano';}
+      const detail=`Điểm tổng hợp: ${total}/8 · Thr=${this.fmtNum(r.thr)} img/s · Lat=${this.fmtLat(r.lat)} ms · Eng=${this.fmtEng(r.eng)} mJ · Acc=${r.acc.toFixed(1)}%`;
+      const clsKey=total>=6?'s':total>=3?'m':'w';
+      return {cls,label,head,detail,scores,total,clsKey};
+    },
+    evaluateSingle(metric, r){
+      const s=this._scoreOne(metric,r);
+      const MAP={acc:'Accuracy',lat:'Latency',thr:'Throughput',eng:'Energy'};
+      const VAL={
+        acc:`${r.acc.toFixed(2)}%`,
+        lat:`${this.fmtLat(r.lat)} ms`,
+        thr:`${this.fmtNum(r.thr)} img/s`,
+        eng:`${this.fmtEng(r.eng)} mJ/ảnh`
+      };
+      const THRESH={
+        acc:  {strong:'≥ 75%',      mid:'≥ 65%',       weak:'< 65%'},
+        lat:  {strong:'< 50 ms',    mid:'< 150 ms',    weak:'≥ 150 ms'},
+        thr:  {strong:'≥ 40 img/s', mid:'≥ 12 img/s',  weak:'< 12 img/s'},
+        eng:  {strong:'< 100 mJ',   mid:'< 300 mJ',    weak:'≥ 300 mJ'},
+      };
+      const cls=s===2?'strong':s===1?'mid':'weak';
+      const label=s===2?'MẠNH':s===1?'TRUNG BÌNH':'YẾU';
+      const t=THRESH[metric];
+      const head=`${MAP[metric]} = ${VAL[metric]}`;
+      const detail=`Ngưỡng: MẠNH ${t.strong} · TB ${t.mid} · YẾU ${t.weak}`;
+      return {cls,label,head,detail};
+    },
+    /* ---------- TERMINAL ---------- */
+    appendLine(line){
+      if(line==='__PAUSED__'){ this.termPaused=true; this.termHtml+='<span class="c-warn">⏸ Benchmark đã tạm dừng — nhấn "Tiếp tục" để chạy tiếp.</span>\n'; this.$nextTick(()=>{const el=this.$refs.termEl;if(el)el.scrollTop=el.scrollHeight;}); return; }
+      if(line==='__RESUMED__'){ this.termPaused=false; this.termHtml+='<span class="c-ok">▶ Benchmark đang tiếp tục...</span>\n'; this.$nextTick(()=>{const el=this.$refs.termEl;if(el)el.scrollTop=el.scrollHeight;}); return; }
+      let cls='';
+      if(line.startsWith('$'))cls='c-cmd';
+      else if(line.startsWith('✓')||line.includes('Hoàn tất')||line.includes('Optimal')||line.includes('Summary'))cls='c-ok';
+      else if(line.startsWith('---')||line.startsWith('Model:'))cls='c-hi';
+      else if(line.startsWith('Thử')||line.startsWith('Backtrack')||line.startsWith('Đang'))cls='c-warn';
+      else if(line.startsWith('[lỗi]')||line.startsWith('[dừng]')||line.includes('Error')||line.includes('Killed'))cls='c-warn';
+      else if(line.startsWith('Params')||line.startsWith('MACs')||line.startsWith('Activations')||line.startsWith('Debug'))cls='c-dim';
+      this.termHtml+=(cls?`<span class="${cls}">`:'<span>')+this.esc(line)+'</span>\n';
+      this.$nextTick(()=>{const el=this.$refs.termEl;if(el)el.scrollTop=el.scrollHeight;});
+    },
+    async tryReconnect(){
+      if(this.termRunning||!BACKEND_URL) return;
+      const token=localStorage.getItem('eb_token');
+      if(!token) return;
+      let d;
+      try{
+        const r=await fetch(BACKEND_URL+'/ssh/status?token='+token,{signal:AbortSignal.timeout(3000)});
+        d=await r.json();
+        if(!d.active) return;
+      }catch{ return; }
+      this.jtab='collect';
+      this.termRunning=true; this.termPaused=d.paused||false;
+      this.termHtml=`<span class="c-dim">// Đang kết nối lại phiên benchmark${d.paused?' (đang tạm dừng)':''}...</span>\n`;
+      const wsUrl=BACKEND_URL.replace('https://','wss://').replace('http://','ws://')+'/ws/ssh';
+      let ws;
+      try{ ws=new WebSocket(wsUrl); }catch{ this.termRunning=false; return; }
+      this.ws=ws;
+      ws.onopen=()=>{ ws.send(JSON.stringify({token,reconnect:true})); };
+      ws.onmessage=(ev)=>{
+        if(ev.data==='__no_session__'){ ws.close(); return; }
+        this.appendLine(ev.data);
+      };
+      ws.onerror=()=>{ this.termRunning=false; this.ws=null; };
+      ws.onclose=()=>{ this.termRunning=false; this.termPaused=false; this.ws=null; };
+    },
+    async runCollect(){
+      if(this.termRunning)return;
+      this.termRunning=true; this.termHtml='';
+      if(!BACKEND_URL){
+        const m=this.ssh.model||'resnet18';
+        const lines=[
+          ['c-cmd',`$ ssh ${this.ssh.user}@${this.ssh.host} "python3 flops_csv2.py --model ${m}"`],
+          ['c-dim','[DEMO MODE — không có backend]'],
+          ['c-hi',`--- Configuration for ${m} ---`],
+          ['c-ok','Throughput: 36.91 images/s · Energy: 69318 uJ'],
+          ['c-dim','→ ghi 1 dòng vào JetsonNano_model.csv ✓'],
+        ];
+        for(const [cls,txt] of lines){
+          await this.typeLine(cls,txt);
+          await new Promise(r=>setTimeout(r,180+Math.random()*200));
+        }
+        this.termRunning=false; return;
+      }
+      const wsUrl=BACKEND_URL.replace('https://','wss://').replace('http://','ws://')+'/ws/ssh';
+      this.typeLine('c-dim',`Đang kết nối WebSocket tới ${wsUrl} ...`);
+      let ws;
+      try{ ws=new WebSocket(wsUrl); }
+      catch(e){ this.typeLine('c-warn','[lỗi] Không tạo được WebSocket: '+e.message); this.termRunning=false; return; }
+      this.ws=ws;
+      const token=localStorage.getItem('eb_token')||'';
+      ws.onopen=()=>{
+        this.typeLine('c-dim','WebSocket đã kết nối — gửi lệnh SSH...');
+        ws.send(JSON.stringify({host:this.ssh.host,user:this.ssh.user,password:this.ssh.password,model:this.ssh.model||'resnet18',token}));
+      };
+      ws.onmessage=(ev)=>{ this.appendLine(ev.data); };
+      ws.onerror=()=>{
+        this.appendLine('[lỗi WebSocket] Kiểm tra backend đang chạy tại '+BACKEND_URL);
+        this.termRunning=false; this.ws=null;
+      };
+      ws.onclose=()=>{ this.termRunning=false; this.termPaused=false; this.ws=null; };
+    },
+    pauseCollect(){ if(this.ws){ this.ws.send('pause'); } },
+    resumeCollect(){ if(this.ws){ this.ws.send('resume'); } },
+    killCollect(){ if(this.ws){ this.ws.send('kill'); this.termPaused=false; } },
+    stopCollect(){ this.killCollect(); },
+    typeLine(cls,txt){
+      return new Promise(res=>{
+        const span=cls?`<span class="${cls}">`:'<span>';
+        this.termHtml+=span+this.esc(txt)+'</span>\n';
+        this.$nextTick(()=>{const el=this.$refs.termEl; if(el)el.scrollTop=el.scrollHeight; res();});
+      });
+    },
+    esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
+    /* ---------- FORMAT ---------- */
+    fmtNum(n){return n>=1000?Math.round(n).toLocaleString('en-US'):n.toFixed(n<10?2:1);},
+    fmtLat(ns){return (ns/1e6).toFixed(2);},      // ns -> ms
+    fmtEng(uj){return (uj/1000).toFixed(2);},      // uJ -> mJ
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
