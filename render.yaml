@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: edgebench-backend
+    env: python
+    plan: free
+    buildCommand: >
+      pip install --upgrade pip &&
+      pip install torch --index-url https://download.pytorch.org/whl/cpu &&
+      pip install -r app/backend/requirements.txt
+    startCommand: cd app/backend && uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false

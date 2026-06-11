@@ -22,10 +22,6 @@ venv/
 env/
 ENV/
 
-# Model files (large binaries — chạy train_models.py để tái tạo)
-app/backend/models/
-*.cbm
-
 # CatBoost training artifacts (log, checkpoint, tmp)
 catboost_info/
 **/catboost_info/
