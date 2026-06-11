@@ -102,31 +102,23 @@ MAX_PENDING_OTP = 10
 
 @app.post('/auth/register')
 async def auth_register(r: AuthReq):
-    # Dọn các OTP hết hạn trước khi kiểm tra giới hạn
-    now = time.time()
-    expired = [e for e, v in _pending_otp.items() if v['expires_at'] < now]
-    for e in expired: _pending_otp.pop(e, None)
-    if len(_pending_otp) >= MAX_PENDING_OTP:
-        raise HTTPException(status_code=429, detail='Hệ thống đang xử lý quá nhiều yêu cầu đăng ký. Vui lòng thử lại sau.')
-    # Kiểm tra email đã tồn tại chưa
     c = _db(); row = c.execute('SELECT id FROM users WHERE email=?', (r.email,)).fetchone(); c.close()
     if row:
         raise HTTPException(status_code=400, detail='Email đã được đăng ký.')
-    # Tạo OTP và lưu pending (hash password ngay, không lưu plaintext)
     salt = os.urandom(16).hex()
-    otp  = f'{random.randint(0, 999999):06d}'
-    _pending_otp[r.email] = {
-        'otp': otp, 'display_name': r.display_name,
-        'password_hash': _hash(r.password, salt), 'salt': salt,
-        'uid': str(uuid.uuid4()), 'expires_at': time.time() + 600,
-    }
-    loop = asyncio.get_running_loop()
+    uid  = str(uuid.uuid4())
+    c = _db()
     try:
-        await loop.run_in_executor(None, _send_otp_email, r.email, r.display_name or r.email, otp)
-    except Exception:
-        _pending_otp.pop(r.email, None)
-        raise HTTPException(status_code=503, detail='Không thể gửi email. Vui lòng thử lại sau.')
-    return {'status': 'otp_sent'}
+        c.execute('INSERT INTO users (id,email,display_name,password_hash,salt) VALUES (?,?,?,?,?)',
+                  (uid, r.email, r.display_name, _hash(r.password, salt), salt))
+        c.commit()
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=400, detail='Email đã được đăng ký.')
+    finally:
+        c.close()
+    token = str(uuid.uuid4())
+    c = _db(); c.execute('INSERT INTO sessions (token,user_id) VALUES (?,?)', (token, uid)); c.commit(); c.close()
+    return {'token': token, 'email': r.email, 'display_name': r.display_name}
 
 class OtpReq(BaseModel):
     email: str
