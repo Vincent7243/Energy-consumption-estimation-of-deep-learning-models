@@ -29,6 +29,9 @@ _FRONTEND = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'inde
 app = FastAPI(title="EdgeBench API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
+_ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets')
+app.mount("/assets", StaticFiles(directory=_ASSETS), name="assets")
+
 # --- Email OTP config (đọc từ env khi khởi động uvicorn) ---
 MAIL_USER = os.environ.get('MAIL_USER', '')   # vd: edgebench@gmail.com
 MAIL_PASS = os.environ.get('MAIL_PASS', '')   # Gmail App Password (16 ký tự)

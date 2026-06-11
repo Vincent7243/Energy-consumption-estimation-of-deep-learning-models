@@ -189,12 +189,13 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
 }
 
 /* ========== APP SHELL ========== */
-.shell{position:relative;z-index:3;max-width:1340px;margin:0 auto;display:flex;align-items:stretch;min-height:100vh}
-.shell-right{flex:1;min-width:0;padding:34px 30px 60px;display:flex;flex-direction:column}
+.shell{position:relative;z-index:3;width:100%;display:flex;flex-direction:column;min-height:100vh}
+.shell-body{display:flex;flex:1;align-items:stretch}
+.shell-right{flex:1;min-width:0;padding:24px 30px 60px;display:flex;flex-direction:column}
 
 /* sidebar — full height left column */
 .sidebar{
-  width:236px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;
+  width:280px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;
   background:var(--panel);border-right:1px solid var(--line);
   padding:28px 16px;display:flex;flex-direction:column;
 }
@@ -283,7 +284,7 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
 
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:16px;
-  margin-bottom:28px;padding:18px 24px;
+  margin-bottom:0;padding:18px 24px;
   background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 5%,var(--bg)) 0%,color-mix(in srgb,var(--accent) 3%,var(--bg2)) 100%);
   border:1px solid color-mix(in srgb,var(--accent) 15%,var(--line));
   border-radius:16px;
@@ -315,6 +316,57 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
   padding:9px 16px;border-radius:9px;font-size:13.5px;font-weight:700;transition:.15s;
 }
 .ghost:hover{border-color:var(--accent-2);color:var(--accent-2)}
+
+/* logo panel — right column */
+.logo-panel{
+  width:300px;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;
+  display:flex;flex-direction:column;align-items:stretch;
+  gap:14px;padding:28px 16px;
+  border-left:1px solid var(--line);
+  background:var(--panel);
+}
+.school-logo-img,.school-name-text,.faculty-label-text,.faculty-logo-img{align-self:center}
+.school-logo-img{width:140px;height:140px;object-fit:contain;display:block;flex-shrink:0}
+.school-name-text{
+  font-size:12px;font-weight:700;text-align:center;line-height:1.7;
+  color:var(--accent);transition:color .4s ease;font-family:var(--sans);
+}
+.faculty-label-text{
+  font-size:11px;font-weight:700;text-align:center;line-height:1.6;
+  color:var(--accent);transition:color .4s ease;font-family:var(--sans);
+}
+.faculty-logo-img{width:178px;height:auto;object-fit:contain;border-radius:10px;display:block;flex-shrink:0}
+
+/* ── platform cards in sidebar ── */
+.platform-cards{display:flex;flex-direction:column;gap:12px;width:100%;margin-top:auto;padding-top:16px;border-top:1px solid var(--line)}
+.platform-card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.platform-card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.platform-card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.pc-server .platform-card-icon{background:rgba(99,102,241,.15)}
+.pc-edge   .platform-card-icon{background:rgba(8,145,178,.15)}
+.platform-card-title{font-size:13px;font-weight:700;color:var(--ink);font-family:var(--sans)}
+.platform-card-sub{font-size:11px;color:var(--ink-soft);margin-top:1px;font-family:var(--sans)}
+.pc-specs{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px}
+.pc-spec{display:flex;flex-direction:column;gap:2px}
+.pc-spec-label{font-size:10px;color:var(--ink-soft);font-family:var(--sans);text-transform:uppercase;letter-spacing:.04em}
+.pc-spec-val{font-size:12px;font-weight:600;color:var(--ink);font-family:var(--mono)}
+.pc-badge{display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;font-family:var(--sans)}
+.pc-server .pc-badge{background:rgba(99,102,241,.12);color:#6366f1}
+.pc-edge   .pc-badge{background:rgba(8,145,178,.12);color:#0891b2}
+.history-card{width:100%;background:transparent;border:none;border-radius:0;padding:0;border-top:1px solid var(--line);padding-top:14px}
+.history-header{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.history-title{font-size:13px;font-weight:700;color:var(--ink);font-family:var(--sans)}
+.history-empty{text-align:center;padding:32px 0;color:var(--ink-soft);font-size:12px;font-family:var(--sans)}
+.history-table{width:100%;border-collapse:collapse;font-size:11px;font-family:var(--sans)}
+.history-table th{text-align:left;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);padding:0 6px 7px;border-bottom:1px solid var(--line)}
+.history-table td{padding:6px 6px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle}
+.history-table tr:last-child td{border-bottom:none}
+.history-table tr:hover td{background:var(--bg)}
+.ht-model{font-family:var(--mono);font-size:11px;font-weight:600;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.ht-plat{font-size:10px;padding:2px 6px;border-radius:10px;font-weight:600;white-space:nowrap}
+.ht-plat.rtx{background:rgba(99,102,241,.12);color:#6366f1}
+.ht-plat.jtx{background:rgba(8,145,178,.12);color:#0891b2}
+.ht-num{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
 
 /* mode bar */
 .modebar{display:flex;align-items:flex-start;gap:16px;margin-bottom:26px;flex-wrap:wrap}
@@ -564,6 +616,24 @@ footer .fsep{margin:0 12px;opacity:.4}
 .spin{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .fade-enter-active,.fade-leave-active{transition:opacity .35s,transform .35s}
+/* ── wizard ── */
+.wizard-choose{padding:12px 0 24px}
+.wizard-lead{font-size:13px;color:var(--ink-soft);text-align:center;margin-bottom:20px;font-family:var(--sans)}
+.wizard-btns{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.wizard-method-btn{display:flex;flex-direction:column;align-items:center;gap:12px;padding:36px 20px;border:2px solid var(--line);border-radius:18px;background:var(--bg);cursor:pointer;transition:border-color .2s,box-shadow .2s;text-align:center}
+.wizard-method-btn:hover{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.07)}
+.wm-icon{font-size:38px;line-height:1}
+.wm-title{font-size:14px;font-weight:700;color:var(--ink);font-family:var(--sans)}
+.wm-sub{font-size:11px;color:var(--ink-soft);font-family:var(--sans);line-height:1.5}
+.wizard-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 0;gap:18px}
+.wl-ring{width:54px;height:54px;border:5px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .75s linear infinite}
+.wl-text{font-size:14px;font-weight:600;color:var(--ink);font-family:var(--sans)}
+.wl-sub{font-size:12px;color:var(--ink-soft);font-family:var(--sans)}
+.wizard-form,.wizard-result{display:flex;flex-direction:column}
+.wizard-back{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-soft);background:none;border:none;cursor:pointer;padding:0;margin-bottom:18px;font-family:var(--sans);transition:color .15s}
+.wizard-back:hover{color:var(--accent)}
+.wizard-result-model{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.wm-name{font-size:15px;font-weight:700;color:var(--ink);font-family:var(--mono)}
 .fade-enter-from{opacity:0;transform:translateY(10px)}
 .fade-leave-to{opacity:0}
 
@@ -606,6 +676,140 @@ footer .fsep{margin:0 12px;opacity:.4}
 .format-hint{margin-top:8px;font-size:11.5px;color:var(--ink-soft);line-height:1.6;background:var(--bg2);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:7px 11px}
 .format-hint code{font-family:var(--mono);color:var(--accent);font-size:11px}
 .format-hint em{color:var(--ink);font-style:normal;font-family:var(--mono);font-size:11px}
+
+/* ---- panel fill height ---- */
+.main-content{flex:1;display:flex;flex-direction:column}
+.main-content > *{flex:1;display:flex;flex-direction:column}
+.panel-server{flex:1;display:flex;flex-direction:column;min-height:calc(100vh - 170px)}
+.panel-server > .panel-header{flex-shrink:0}
+.panel-server > .fade-enter-active,.panel-server > .fade-leave-active{flex:1}
+
+/* ---- hero zone: bg image spans from icons down to divider ---- */
+.wizard-hero-zone{
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;flex:1;
+  justify-content:center;
+}
+.wizard-hero-zone::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  background:url('assets/bg-hero.jpg') center 30%/cover no-repeat;
+  filter:brightness(.72) saturate(1.1);
+}
+.wizard-hero-zone::after{
+  content:'';position:absolute;inset:0;z-index:1;
+  /* lighter at top (icons area), darker at bottom (towards divider) */
+  background:linear-gradient(180deg,rgba(10,12,30,.18) 0%,rgba(10,12,30,.52) 100%);
+}
+/* ---- hero images in choose step ---- */
+.panel-hero-images{
+  position:relative;z-index:2;
+  display:flex;justify-content:space-around;align-items:stretch;
+  padding:20px;gap:18px;flex-shrink:0;
+}
+.phi-item{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;gap:12px;flex:1;
+  padding:26px 20px 22px;
+  background:rgba(255,255,255,.08);
+  border:1.5px solid rgba(255,255,255,.22);
+  border-radius:18px;
+  backdrop-filter:blur(14px) saturate(1.4);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.phi-item:hover{
+  border-color:rgba(255,255,255,.42);
+  box-shadow:0 6px 28px -6px rgba(0,0,0,.35);
+  background:rgba(255,255,255,.14);
+}
+.phi-icon{display:flex;align-items:center;justify-content:center;width:110px;height:110px}
+.phi-icon svg{width:100%;height:100%;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4))}
+.phi-label{font-size:12.5px;color:rgba(255,255,255,.9);font-family:var(--sans);font-weight:700;text-align:center;letter-spacing:.03em;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+
+/* ---- wizard-choose fill ---- */
+.wizard-choose{display:flex;flex-direction:column;flex:1;padding:12px 0 0}
+.wizard-choose-spacer{flex:1;min-height:20px;position:relative;z-index:2}
+.wizard-divider-line{
+  height:1.5px;flex-shrink:0;margin:0 0 4px;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--accent) 35%,var(--line)) 25%,color-mix(in srgb,var(--accent) 35%,var(--line)) 75%,transparent);
+}
+.wizard-lead-large{font-size:17px!important;font-weight:700!important;color:var(--ink)!important;margin-bottom:18px!important;letter-spacing:-.01em}
+.wizard-btns-wrap{padding:0 0 28px}
+
+/* ---- wizard step progress bar ---- */
+.wizard-step-bar{display:flex;align-items:center;gap:8px;margin-bottom:22px;padding:12px 16px;background:color-mix(in srgb,var(--accent) 5%,var(--bg));border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 14%,var(--line))}
+.wsb-item{display:flex;align-items:center;gap:7px;font-size:13px;font-family:var(--sans);font-weight:600;color:var(--ink-soft);white-space:nowrap}
+.wsb-item.wsb-active{color:var(--accent);font-weight:800}
+.wsb-item.wsb-done{color:color-mix(in srgb,var(--accent) 70%,var(--ink-soft))}
+.wsb-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11.5px;font-weight:800;background:color-mix(in srgb,var(--accent) 12%,var(--bg));border:1.5px solid color-mix(in srgb,var(--accent) 25%,var(--line));color:var(--ink-soft)}
+.wsb-item.wsb-active .wsb-num{background:var(--accent);border-color:var(--accent);color:#fff}
+.wsb-item.wsb-done .wsb-num{background:color-mix(in srgb,var(--accent) 18%,var(--bg));border-color:var(--accent);color:var(--accent)}
+.wsb-arrow{color:color-mix(in srgb,var(--accent) 35%,var(--line));font-size:13px;flex-shrink:0}
+
+/* ---- btn-next override ---- */
+.btn.btn-next{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 80%,#7c3aed));box-shadow:0 4px 18px -4px color-mix(in srgb,var(--accent) 40%,transparent)}
+
+/* ---- BS step model recap ---- */
+.bs-model-recap{display:flex;align-items:center;gap:10px;padding:12px 16px;background:color-mix(in srgb,var(--accent) 7%,var(--bg));border:1.5px solid color-mix(in srgb,var(--accent) 22%,var(--line));border-radius:12px;margin-bottom:4px}
+.bs-recap-label{font-size:12px;color:var(--ink-soft);font-family:var(--sans);flex-shrink:0}
+.bs-recap-name{font-size:14px;font-weight:700;color:var(--accent);font-family:var(--mono);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bs-recap-edit{font-size:12px;font-weight:600;color:var(--accent);background:transparent;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:7px;padding:4px 10px;cursor:pointer;flex-shrink:0;font-family:var(--sans);transition:background .15s}
+.bs-recap-edit:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
+
+/* ---- back button in header ---- */
+.wizard-back-top{
+  margin-left:auto;flex-shrink:0;display:inline-flex;align-items:center;gap:8px;
+  font-size:15px;font-weight:800;color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent);
+  border:2px solid var(--accent);border-radius:11px;cursor:pointer;
+  padding:10px 22px;transition:background .15s,color .15s,transform .15s;font-family:var(--sans);
+}
+.wizard-back-top:hover{background:color-mix(in srgb,var(--accent) 16%,transparent);transform:translateX(-2px)}
+.wizard-back-top-edge{color:#0891b2;border-color:#0891b2;background:rgba(8,145,178,.08)}
+.wizard-back-top-edge:hover{background:rgba(8,145,178,.16)}
+
+/* ---- edge panel full height ---- */
+.panel-jetson-predict{flex:1;display:flex;flex-direction:column;min-height:calc(100vh - 220px)}
+.panel-jetson-predict > .panel-header{flex-shrink:0}
+.panel-jetson-predict > .fade-enter-active,
+.panel-jetson-predict > .fade-leave-active{flex:1}
+
+/* ---- edge hero zone ---- */
+.wizard-hero-zone-edge{min-height:220px}
+.wizard-hero-zone-edge::before{
+  background:url('assets/bg-hero-edge.jpg') center 40%/cover no-repeat;
+  filter:brightness(.82) saturate(1.05);
+}
+.edge-hero-content{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;padding:40px 24px;
+}
+.edge-hero-icon{font-size:52px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+.edge-hero-title{font-size:26px;font-weight:800;color:#fff;font-family:var(--sans);letter-spacing:-.02em;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.edge-hero-sub{font-size:13px;color:rgba(255,255,255,.75);font-family:var(--mono);text-align:center;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+
+/* ---- xem tiêu chí link ---- */
+.edge-xem-tieu-chi{display:flex;justify-content:flex-end;padding:0 0 20px}
+.edge-xem-tieu-chi .info-btn{
+  font-size:13px;font-weight:700;padding:8px 18px;border-radius:9px;cursor:pointer;font-family:var(--sans);
+  color:#0891b2;border:2px solid #0891b2;background:rgba(8,145,178,.08);
+  transition:background .15s,transform .15s;
+}
+.edge-xem-tieu-chi .info-btn:hover{background:rgba(8,145,178,.16);transform:translateY(-1px)}
+
+/* ---- edge result layout ---- */
+.edge-result .metrics{margin-bottom:18px}
+.edge-result .verdict{margin-top:0}
+.edge-result .src-tag{margin-top:12px;display:inline-block}
+
+/* ---- bigger file import button ---- */
+.import-area-large{margin-top:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  border:2.5px dashed var(--accent);border-radius:18px;padding:38px 28px;gap:14px;
+  background:color-mix(in srgb,var(--accent) 4%,var(--bg));transition:background .15s}
+.import-area-large:hover{background:color-mix(in srgb,var(--accent) 9%,var(--bg))}
+.import-area-large .import-btn-label{border:none;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 80%,#a855f7));color:#fff;border-radius:12px;padding:14px 32px;font-size:15px;font-weight:700;box-shadow:0 4px 18px -4px color-mix(in srgb,var(--accent) 40%,transparent)}
+.import-area-large .import-btn-label:hover{filter:brightness(1.07)}
+.import-area-hint{font-size:12.5px;color:var(--ink-soft);font-family:var(--mono);text-align:center;line-height:1.6}
 </style>
 </head>
 <body id="bodyroot">
@@ -766,6 +970,30 @@ footer .fsep{margin:0 12px;opacity:.4}
   <!-- =================== APP =================== -->
   <div class="shell" v-else>
 
+    <!-- ===== TOPBAR (full width) ===== -->
+    <div class="topbar">
+      <div class="logo">
+        <span class="dot"></span>
+        <div class="logo-text">
+          <div class="logo-name">EdgeBench <em>Predictor</em></div>
+          <div class="logo-sub">GRADUATION THESIS · EDGE–CLOUD CONTINUUM · 2026</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="user-chip">
+          <div class="avatar">{{ initials }}</div>
+          <div class="user-info">
+            <div class="ui-name">{{ user.displayName || user.email }}</div>
+            <div class="ui-badge">RESEARCHER</div>
+          </div>
+        </div>
+        <button class="ghost" @click="logout">Đăng xuất</button>
+      </div>
+    </div>
+
+    <!-- ===== BODY ROW: SIDEBAR + CONTENT + LOGO PANEL ===== -->
+    <div class="shell-body">
+
       <!-- ===== LEFT SIDEBAR (full height) ===== -->
       <nav class="sidebar">
         <div class="nav-section-label">KHÁM PHÁ</div>
@@ -789,7 +1017,7 @@ footer .fsep{margin:0 12px;opacity:.4}
           <span class="nav-led"></span>
           <span class="nav-text">
             <span class="nav-title">Server</span>
-            <span class="nav-sub">RTX 3080 · 797 mô hình</span>
+            <span class="nav-sub">RTX 3080</span>
           </span>
         </button>
         <button class="nav-btn edge-btn" :class="{on:navPage==='edge'}" @click="navPage='edge'">
@@ -799,31 +1027,50 @@ footer .fsep{margin:0 12px;opacity:.4}
             <span class="nav-sub">Jetson Nano · SSH benchmark</span>
           </span>
         </button>
-      </nav>
 
-      <!-- RIGHT COLUMN: topbar + content + footer -->
-      <div class="shell-right">
-
-    <!-- Topbar -->
-    <div class="topbar">
-      <div class="logo">
-        <span class="dot"></span>
-        <div class="logo-text">
-          <div class="logo-name">EdgeBench <em>Predictor</em></div>
-          <div class="logo-sub">GRADUATION THESIS · EDGE–CLOUD CONTINUUM · 2026</div>
-        </div>
-      </div>
-      <div class="topbar-right">
-        <div class="user-chip">
-          <div class="avatar">{{ initials }}</div>
-          <div class="user-info">
-            <div class="ui-name">{{ user.displayName || user.email }}</div>
-            <div class="ui-badge">RESEARCHER</div>
+        <!-- Platform spec cards -->
+        <div class="platform-cards" v-if="navPage==='server'||navPage==='edge'">
+          <div class="platform-card pc-server">
+            <div class="platform-card-header">
+              <div class="platform-card-icon">⚡</div>
+              <div>
+                <div class="platform-card-title">NVIDIA RTX 3080</div>
+                <div class="platform-card-sub">Server · High-Performance GPU</div>
+              </div>
+            </div>
+            <div class="pc-specs">
+              <div class="pc-spec"><span class="pc-spec-label">Architecture</span><span class="pc-spec-val">Ampere</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">CUDA Cores</span><span class="pc-spec-val">8 704</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">VRAM</span><span class="pc-spec-val">10 GB GDDR6X</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">TDP</span><span class="pc-spec-val">320 W</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">FP32 (TFLOPS)</span><span class="pc-spec-val">29.77</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">Mô hình</span><span class="pc-spec-val">1408</span></div>
+            </div>
+            <span class="pc-badge">🖥 Server Mode</span>
+          </div>
+          <div class="platform-card pc-edge">
+            <div class="platform-card-header">
+              <div class="platform-card-icon">🌿</div>
+              <div>
+                <div class="platform-card-title">NVIDIA Jetson Nano</div>
+                <div class="platform-card-sub">Edge · Embedded AI Platform</div>
+              </div>
+            </div>
+            <div class="pc-specs">
+              <div class="pc-spec"><span class="pc-spec-label">Architecture</span><span class="pc-spec-val">Maxwell</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">CUDA Cores</span><span class="pc-spec-val">128</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">RAM</span><span class="pc-spec-val">4 GB LPDDR4</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">TDP</span><span class="pc-spec-val">5 – 10 W</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">Kết nối</span><span class="pc-spec-val">SSH</span></div>
+              <div class="pc-spec"><span class="pc-spec-label">Mô hình</span><span class="pc-spec-val">304</span></div>
+            </div>
+            <span class="pc-badge">🔋 Edge Mode</span>
           </div>
         </div>
-        <button class="ghost" @click="logout">Đăng xuất</button>
-      </div>
-    </div>
+      </nav>
+
+      <!-- CENTER COLUMN: content + footer -->
+      <div class="shell-right">
 
       <!-- ===== MAIN CONTENT ===== -->
       <div class="main-content">
@@ -949,103 +1196,226 @@ footer .fsep{margin:0 12px;opacity:.4}
       <div class="panel panel-server">
         <div class="panel-header">
           <div class="panel-icon">⚡</div>
-          <div>
-            <h3>Dự đoán hiệu năng trên RTX 3080</h3>
-          </div>
+          <div><h3>Dự đoán hiệu năng trên RTX 3080</h3></div>
+          <button v-if="predStep!=='choose'" class="wizard-back-top" @click="goBackToChoose">← Quay lại</button>
         </div>
 
-        <div class="grid2">
-          <!-- Input side -->
-          <div>
+        <transition name="fade" mode="out-in">
+
+          <!-- ── BƯỚC 1: CHỌN PHƯƠNG THỨC ── -->
+          <div v-if="predStep==='choose'" key="s-choose" class="wizard-choose">
+            <!-- Hero zone: bg image from icons down to divider -->
+            <div class="wizard-hero-zone">
+            <!-- Hero images: Save Energy | GPU | Machine Learning -->
+            <div class="panel-hero-images">
+              <!-- Left: Save Energy -->
+              <div class="phi-item">
+                <div class="phi-icon">
+                  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="100" cy="118" r="62" fill="#22c55e"/>
+                    <rect x="56" y="104" width="72" height="42" rx="7" fill="white"/>
+                    <rect x="128" y="114" width="11" height="22" rx="4" fill="white"/>
+                    <rect x="61" y="109" width="14" height="32" rx="3" fill="#22c55e"/>
+                    <rect x="80" y="109" width="14" height="32" rx="3" fill="#22c55e"/>
+                    <rect x="99" y="109" width="14" height="32" rx="3" fill="#22c55e"/>
+                    <rect x="118" y="109" width="8" height="32" rx="3" fill="#22c55e"/>
+                    <path d="M100 56 Q76 65 71 88 Q92 76 100 56Z" fill="#22c55e"/>
+                    <path d="M100 56 Q124 68 121 90 Q102 80 100 56Z" fill="#15803d"/>
+                    <line x1="100" y1="56" x2="100" y2="73" stroke="#15803d" stroke-width="3.5"/>
+                    <rect x="132" y="34" width="18" height="28" rx="5" fill="#22c55e"/>
+                    <rect x="135" y="24" width="5" height="12" rx="2" fill="#22c55e"/>
+                    <rect x="145" y="24" width="5" height="12" rx="2" fill="#22c55e"/>
+                    <path d="M141 62 Q142 78 152 86 Q164 92 166 106" stroke="#22c55e" stroke-width="7" fill="none" stroke-linecap="round"/>
+                    <text x="100" y="196" font-family="Arial,sans-serif" font-size="16" font-weight="700" fill="#15803d" text-anchor="middle">SAVE ENERGY</text>
+                  </svg>
+                </div>
+                <span class="phi-label">Tiết kiệm năng lượng</span>
+              </div>
+              <!-- Center: GPU -->
+              <div class="phi-item">
+                <div class="phi-icon">
+                  <svg viewBox="0 0 220 155" fill="none" stroke="#1e1e2f" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="22" y="22" width="176" height="108" rx="9" stroke-width="8" fill="white"/>
+                    <rect x="4" y="42" width="18" height="70" rx="5" stroke-width="7" fill="white"/>
+                    <rect x="36" y="36" width="74" height="48" rx="5" stroke-width="6" fill="white"/>
+                    <text x="73" y="68" font-family="Arial Black,Impact,sans-serif" font-size="26" font-weight="900" fill="#1e1e2f" stroke="none" text-anchor="middle">GPU</text>
+                    <circle cx="158" cy="60" r="30" stroke-width="7" fill="white"/>
+                    <path d="M158 33 Q167 46 158 60 Q149 46 158 33Z" fill="#1e1e2f" stroke="none"/>
+                    <path d="M185 60 Q172 69 158 60 Q172 51 185 60Z" fill="#1e1e2f" stroke="none"/>
+                    <path d="M158 87 Q149 74 158 60 Q167 74 158 87Z" fill="#1e1e2f" stroke="none"/>
+                    <path d="M131 60 Q144 51 158 60 Q144 69 131 60Z" fill="#1e1e2f" stroke="none"/>
+                    <circle cx="158" cy="60" r="9" fill="white" stroke="#1e1e2f" stroke-width="5"/>
+                    <rect x="36" y="130" width="24" height="13" rx="3" stroke-width="5" fill="white"/>
+                    <rect x="68" y="130" width="24" height="13" rx="3" stroke-width="5" fill="white"/>
+                    <rect x="100" y="130" width="24" height="13" rx="3" stroke-width="5" fill="white"/>
+                    <rect x="132" y="130" width="24" height="13" rx="3" stroke-width="5" fill="white"/>
+                  </svg>
+                </div>
+                <span class="phi-label">GPU RTX 3080</span>
+              </div>
+              <!-- Right: Machine Learning -->
+              <div class="phi-item">
+                <div class="phi-icon">
+                  <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M62 165 L62 112 Q56 82 72 56 Q88 30 102 28 Q116 26 128 42 Q144 58 142 84 Q140 112 130 132 L130 165 Z" fill="#1e1e2f"/>
+                    <path d="M82 104 Q73 88 80 74 Q88 60 97 64 Q100 54 111 55 Q122 57 121 68 Q130 66 134 76 Q138 87 131 96 Q137 104 132 114 Q126 125 116 119 Q111 127 100 125 Q87 127 80 117 Q73 111 82 104Z" fill="white"/>
+                    <path d="M89 77 Q94 69 100 73 Q106 69 111 75" stroke="#1e1e2f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M83 93 Q89 84 97 88 Q104 82 112 86 Q118 82 123 88" stroke="#1e1e2f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <path d="M85 107 Q91 98 100 102 Q108 96 116 101 Q122 97 126 104" stroke="#1e1e2f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                    <circle cx="56" cy="94" r="5" fill="#1e1e2f"/>
+                    <circle cx="50" cy="116" r="5" fill="#1e1e2f"/>
+                    <circle cx="148" cy="90" r="5" fill="#1e1e2f"/>
+                    <circle cx="154" cy="114" r="5" fill="#1e1e2f"/>
+                    <path d="M56 94 L38 94 L38 80 L26 80" stroke="#1e1e2f" stroke-width="3.5" fill="none" stroke-linejoin="miter"/>
+                    <path d="M50 116 L34 116 L34 132 L22 132" stroke="#1e1e2f" stroke-width="3.5" fill="none" stroke-linejoin="miter"/>
+                    <path d="M148 90 L165 90 L165 78 L177 78" stroke="#1e1e2f" stroke-width="3.5" fill="none" stroke-linejoin="miter"/>
+                    <path d="M154 114 L168 114 L168 128 L180 128" stroke="#1e1e2f" stroke-width="3.5" fill="none" stroke-linejoin="miter"/>
+                    <circle cx="26" cy="80" r="4" fill="#1e1e2f"/>
+                    <circle cx="22" cy="132" r="4" fill="#1e1e2f"/>
+                    <circle cx="177" cy="78" r="4" fill="#1e1e2f"/>
+                    <circle cx="180" cy="128" r="4" fill="#1e1e2f"/>
+                    <text x="100" y="196" font-family="Arial,sans-serif" font-size="14" font-weight="700" fill="#1e1e2f" text-anchor="middle">MACHINE LEARNING</text>
+                  </svg>
+                </div>
+                <span class="phi-label">Machine Learning</span>
+              </div>
+            </div>
+
+            </div><!-- /wizard-hero-zone -->
+            <div class="wizard-divider-line"></div>
+            <p class="wizard-lead wizard-lead-large">Chọn phương thức dự đoán</p>
+            <div class="wizard-btns wizard-btns-wrap">
+              <button class="wizard-method-btn" @click="predMethod='name'; predStep='name'; query=''; optBs=''; maxBs=''">
+                <span class="wm-icon">🔤</span>
+                <span class="wm-title">Dự đoán bằng tên mô hình</span>
+                <span class="wm-sub">Nhập tên theo chuẩn timm · 797 mô hình có sẵn</span>
+              </button>
+              <button class="wizard-method-btn" @click="predMethod='file'; predStep='form'; importedFile=null; importStatus=null">
+                <span class="wm-icon">📂</span>
+                <span class="wm-title">Dự đoán bằng import file</span>
+                <span class="wm-sub">Upload .pth · .safetensors · .onnx · .pt</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ── BƯỚC 2: ĐANG XỬ LÝ ── -->
+          <div v-else-if="predStep==='loading'" key="s-loading" class="wizard-loading">
+            <div class="wl-ring"></div>
+            <div class="wl-text">Đang phân tích và tính toán…</div>
+            <div class="wl-sub">CatBoost đang xử lý đặc trưng mô hình</div>
+          </div>
+
+          <!-- ── BƯỚC 2a: Nhập tên mô hình ── -->
+          <div v-else-if="predStep==='name'" key="s-form-name" class="wizard-form">
+            <div class="wizard-step-bar">
+              <div class="wsb-item wsb-active"><span class="wsb-num">1</span> Tên mô hình</div>
+              <div class="wsb-arrow">→</div>
+              <div class="wsb-item"><span class="wsb-num">2</span> Batch size</div>
+              <div class="wsb-arrow">→</div>
+              <div class="wsb-item"><span class="wsb-num">3</span> Kết quả</div>
+            </div>
             <div class="label-row">
               <label>Tên mô hình (timm)</label>
               <button class="search-toggle" type="button" @click="openModelSearch">
                 {{ showModelSearch ? '✕ Đóng' : '🔍 Tra cứu 797 tên' }}
               </button>
             </div>
-            <input v-model="query" placeholder="vd: resnet50, efficientnet_b0, convnext_tiny" @keyup.enter="predict('rtx')"/>
-            <!-- Search panel -->
+            <input v-model="query" placeholder="vd: resnet50, efficientnet_b0, convnext_tiny" @keyup.enter="query.trim() && (predStep='bs')"/>
             <div v-if="showModelSearch" class="model-search-panel">
-              <input class="model-search-input" v-model="modelSearch" placeholder="Tìm tên model, vd: resnet, vit, efficientnet…" @input="filterModels"/>
+              <input class="model-search-input" v-model="modelSearch" placeholder="Tìm tên model…" @input="filterModels"/>
               <div class="model-search-meta">
                 <span v-if="modelListLoading">Đang tải danh sách…</span>
-                <span v-else>Hiển thị {{ modelSearchResults.length }} / {{ modelList.length }} tên hợp lệ · click để dùng</span>
+                <span v-else>Hiển thị {{ modelSearchResults.length }} / {{ modelList.length }} tên · click để dùng</span>
               </div>
               <div class="model-results">
                 <button v-for="n in modelSearchResults" :key="n" class="model-chip" @click="selectModel(n)">{{ n }}</button>
               </div>
             </div>
-            <!-- Format hint -->
             <div class="format-hint">
               💡 <strong>Định dạng timm:</strong> <code>family[_variant][_resolution]</code>
-              — Đặt tên file .pth/.pt theo chuẩn này để import khớp.
-              Ví dụ: <em>resnet50.pth</em>, <em>vit_base_patch16_224.pt</em>, <em>efficientnet_b0.onnx</em>
+              — Ví dụ: <em>resnet50</em>, <em>vit_base_patch16_224</em>, <em>efficientnet_b0</em>
             </div>
-            <div class="hdivider" style="margin:10px 0 6px">HOẶC IMPORT FILE</div>
-            <div class="import-row">
-              <label class="import-btn-label" for="rtxFileInput">
+            <button class="btn btn-next" :disabled="!query.trim()" @click="predStep='bs'">Tiếp theo →</button>
+            <span class="suggest-label">Mô hình phổ biến — nhấn để điền nhanh:</span>
+            <div class="suggest">
+              <button v-for="m in suggestions('rtx')" :key="m" @click="query=m">{{ m }}</button>
+            </div>
+          </div>
+
+          <!-- ── BƯỚC 2b: Batch size ── -->
+          <div v-else-if="predStep==='bs'" key="s-bs" class="wizard-form">
+            <div class="wizard-step-bar">
+              <div class="wsb-item wsb-done"><span class="wsb-num">✓</span> Tên mô hình</div>
+              <div class="wsb-arrow">→</div>
+              <div class="wsb-item wsb-active"><span class="wsb-num">2</span> Batch size</div>
+              <div class="wsb-arrow">→</div>
+              <div class="wsb-item"><span class="wsb-num">3</span> Kết quả</div>
+            </div>
+            <div class="bs-model-recap">
+              <span class="bs-recap-label">Mô hình đã chọn:</span>
+              <span class="bs-recap-name">{{ query }}</span>
+            </div>
+            <div class="field-row" style="margin-top:18px">
+              <div>
+                <label>Optimal Batch Size</label>
+                <input v-model="optBs" placeholder="auto" @keyup.enter="predict('rtx')"/>
+              </div>
+              <div>
+                <label>Max Batch Size</label>
+                <input v-model="maxBs" placeholder="auto" @keyup.enter="predict('rtx')"/>
+              </div>
+            </div>
+            <div class="format-hint">
+              💡 Để trống để hệ thống tự xác định batch size tối ưu cho RTX 3080
+            </div>
+            <button class="btn" @click="predict('rtx')">Dự đoán hiệu năng</button>
+          </div>
+
+          <!-- ── BƯỚC 2: FORM — Import file ── -->
+          <div v-else-if="predStep==='form' && predMethod==='file'" key="s-form-file" class="wizard-form">
+            <div class="import-area-large">
+              <label class="import-btn-label" for="rtxFileInput" style="cursor:pointer">
                 <input type="file" id="rtxFileInput" ref="rtxFileInput" style="display:none" @change="onFileImport" accept=".pt,.pth,.onnx,.cbm,.h5,.pkl,.bin,.safetensors,.py,.torchscript">
-                ↑ Import file mô hình
+                ↑ Chọn file mô hình
               </label>
               <span v-if="importedFile" class="imported-chip">{{ importedFile }}</span>
+              <span class="import-area-hint">Hỗ trợ: .pth · .pt · .safetensors · .bin · .onnx<br>Hệ thống tự động trích xuất đặc trưng và dự đoán</span>
             </div>
-            <!-- Thông báo: đang upload file .pth -->
-            <div v-if="importStatus==='uploading'" class="import-notice uploading">
-              <strong><span class="spin" style="display:inline-block;margin-right:6px;vertical-align:middle"></span>Đang đọc file…</strong>
-              <span class="import-filename">Đang upload và phân tích "{{ importedFile }}"…</span>
-            </div>
-            <!-- Thông báo: file .pth khớp param với model trong dataset -->
             <div v-if="importStatus==='file-match'" class="import-notice ok">
               <strong>✅ Khớp với "{{ importMatchedModel }}" trong dataset</strong>
-              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · dùng cached features</span>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · cached features</span>
             </div>
-            <!-- Thông báo: file .pth là full model object, tính được MACs chính xác -->
             <div v-if="importStatus==='file-computed'" class="import-notice timm-only">
               <strong>🔵 Đọc thành công — features tính từ model object</strong>
               <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · MACs chính xác</span>
             </div>
-            <!-- Thông báo: chỉ có state dict, MACs là ước tính thô -->
             <div v-if="importStatus==='file-estimated'" class="import-notice warn">
               <strong>⚠️ State dict only — MACs là ước tính thô</strong>
-              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · độ chính xác thấp hơn bình thường</span>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params</span>
             </div>
-            <!-- Thông báo: đang convert + phân tích (.safetensors/.bin/.ckpt) -->
-            <div v-if="importStatus==='converting'" class="import-notice uploading">
-              <strong><span class="spin" style="display:inline-block;margin-right:6px;vertical-align:middle"></span>Đang chuyển đổi…</strong>
-              <span class="import-filename">Đang convert .{{ importExt }} sang .pth và phân tích…</span>
-            </div>
-            <!-- Thông báo: convert thành công + khớp dataset -->
             <div v-if="importStatus==='converted-match'" class="import-notice ok">
               <strong>✅ Đã convert .{{ importExt }} → khớp "{{ importMatchedModel }}"</strong>
-              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · dùng cached features</span>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params</span>
             </div>
-            <!-- Thông báo: convert thành công, không khớp dataset -->
             <div v-if="importStatus==='converted-estimated'" class="import-notice warn">
               <strong>⚠️ Đã convert .{{ importExt }} — MACs là ước tính thô</strong>
-              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params · không khớp dataset</span>
+              <span class="import-filename">{{ importedFile }} — {{ (importParamCount/1e6).toFixed(1) }}M params</span>
             </div>
-            <!-- Thông báo: định dạng không thể convert -->
             <div v-if="importStatus==='not-feasible'" class="import-notice danger">
               <strong>🚫 Định dạng .{{ importExt }} không thể chuyển đổi tự động</strong>
               <span class="import-filename">Chỉ hỗ trợ: .pth · .pt · .safetensors · .bin · .ckpt</span>
             </div>
-            <!-- Thông báo: lỗi đọc file -->
             <div v-if="importStatus==='file-error'" class="import-notice danger">
               <strong>🔴 Lỗi đọc file</strong>
               <span class="import-filename">{{ importErrorMsg }}</span>
             </div>
-            <!-- Thông báo name-based (khi dùng ô nhập tay + validate) -->
             <div v-if="importStatus==='match'" class="import-notice ok">
               <strong>✅ Tên mô hình có trong dataset</strong>
-              <span class="import-filename">"{{ importedFile }}" — dùng cached features, đang dự đoán…</span>
+              <span class="import-filename">"{{ importedFile }}" — cached features</span>
             </div>
             <div v-if="importStatus==='timm-only'" class="import-notice timm-only">
               <strong>🔵 Mô hình timm hợp lệ — chưa có trong dataset</strong>
-              <span class="import-filename">"{{ importedFile }}" — đang tính features real-time…</span>
-            </div>
-            <div v-if="importStatus==='converted'" class="import-notice converted">
-              <strong>↻ Đã chuyển sang: {{ query }}</strong>
-              <span class="import-filename">Đang dự đoán với tên đã chọn…</span>
+              <span class="import-filename">"{{ importedFile }}" — tính features real-time</span>
             </div>
             <div v-if="importStatus==='nomatch'" class="import-notice danger">
               <strong>🔴 Không nhận dạng được trong thư viện timm</strong>
@@ -1055,71 +1425,58 @@ footer .fsep{margin:0 12px;opacity:.4}
               </button>
               <div v-if="showConvert" class="sug-panel">
                 <div v-if="importSugs.length">
-                  <p>Chọn tên mô hình tương tự trong dataset:</p>
+                  <p>Chọn tên mô hình tương tự:</p>
                   <div class="sug-chips">
                     <button v-for="s in importSugs" :key="s" class="sug-chip" @click="applyConvert(s)">{{ s }}</button>
                   </div>
                 </div>
                 <div v-else>
-                  <p>Không tìm thấy tên tương tự. Thử dự đoán trực tiếp với tên file:</p>
+                  <p>Không tìm thấy tên tương tự. Thử dự đoán trực tiếp:</p>
                   <button class="sug-direct" @click="applyConvert(importedFile)">Dự đoán với "{{ importedFile }}"</button>
                 </div>
               </div>
             </div>
-            <div class="field-row" style="margin-top:12px">
-              <div><label>Optimal Batch Size</label><input v-model="optBs" placeholder="auto"/></div>
-              <div><label>Max Batch Size</label><input v-model="maxBs" placeholder="auto"/></div>
+          </div>
+
+          <!-- ── BƯỚC 3: KẾT QUẢ ── -->
+          <div v-else-if="predStep==='result' && result" key="s-result" class="wizard-result">
+            <div class="wizard-result-model">
+              <span class="wm-name">{{ query || importedFile }}</span>
+              <span class="src-tag" style="margin:0">{{ result.src }}</span>
             </div>
-            <button class="btn" :disabled="busy2" @click="predict('rtx')">
-              <span v-if="busy2" class="spin"></span>Dự đoán hiệu năng
-            </button>
-            <span class="suggest-label">Mô hình phổ biến — nhấn để điền nhanh:</span>
-            <div class="suggest">
-              <button v-for="m in suggestions('rtx')" :key="m" @click="query=m;predict('rtx')">{{ m }}</button>
+            <div class="metrics">
+              <div class="metric m-acc">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↑ tốt hơn</div>
+                <div class="mlabel">Accuracy</div>
+                <div class="mval">{{ result.acc.toFixed(2) }}<span class="munit">% top-1</span></div>
+                <div class="mdesc">Độ chính xác ImageNet</div>
+              </div>
+              <div class="metric m-lat">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↓ tốt hơn</div>
+                <div class="mlabel">Latency</div>
+                <div class="mval">{{ fmtLat(result.lat) }}<span class="munit">ms/ảnh</span></div>
+                <div class="mdesc">Thời gian suy luận mỗi ảnh</div>
+              </div>
+              <div class="metric m-thr">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↑ tốt hơn</div>
+                <div class="mlabel">Throughput</div>
+                <div class="mval">{{ fmtNum(result.thr) }}<span class="munit">img/s</span></div>
+                <div class="mdesc">Ảnh xử lý được mỗi giây</div>
+              </div>
+              <div class="metric m-eng">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↓ tốt hơn</div>
+                <div class="mlabel">Energy</div>
+                <div class="mval">{{ fmtEng(result.eng) }}<span class="munit">mJ/ảnh</span></div>
+                <div class="mdesc">Tiêu thụ năng lượng GPU</div>
+              </div>
             </div>
           </div>
 
-          <!-- Result side -->
-          <div>
-            <div v-if="result">
-              <div class="metrics">
-                <div class="metric m-acc">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↑ tốt hơn</div>
-                  <div class="mlabel">Accuracy</div>
-                  <div class="mval">{{ result.acc.toFixed(2) }}<span class="munit">% top-1</span></div>
-                  <div class="mdesc">Độ chính xác ImageNet</div>
-                </div>
-                <div class="metric m-lat">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↓ tốt hơn</div>
-                  <div class="mlabel">Latency</div>
-                  <div class="mval">{{ fmtLat(result.lat) }}<span class="munit">ms/ảnh</span></div>
-                  <div class="mdesc">Thời gian suy luận mỗi ảnh</div>
-                </div>
-                <div class="metric m-thr">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↑ tốt hơn</div>
-                  <div class="mlabel">Throughput</div>
-                  <div class="mval">{{ fmtNum(result.thr) }}<span class="munit">img/s</span></div>
-                  <div class="mdesc">Ảnh xử lý được mỗi giây</div>
-                </div>
-                <div class="metric m-eng">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↓ tốt hơn</div>
-                  <div class="mlabel">Energy</div>
-                  <div class="mval">{{ fmtEng(result.eng) }}<span class="munit">mJ/ảnh</span></div>
-                  <div class="mdesc">Tiêu thụ năng lượng GPU</div>
-                </div>
-              </div>
-              <span class="src-tag">{{ result.src }}</span>
-            </div>
-            <div v-else class="empty-metrics">
-              <span class="em-icon">◌</span>
-              <div>Nhập tên mô hình rồi nhấn<br><strong>Dự đoán hiệu năng</strong> để xem kết quả</div>
-            </div>
-          </div>
-        </div>
+        </transition>
       </div>
     </div>
 
@@ -1166,47 +1523,130 @@ footer .fsep{margin:0 12px;opacity:.4}
         <div class="term" ref="termEl"><span v-html="termHtml"></span><span class="cursor"></span></div>
       </div>
 
-      <!-- Tab 2: Predict + Verdict -->
-      <div class="panel panel-jetson" v-else>
+      <!-- Tab 2: Predict + Verdict — wizard flow -->
+      <div class="panel panel-jetson panel-jetson-predict" v-else>
         <div class="panel-header">
           <div class="panel-icon">📊</div>
-          <div>
-            <h3>Dự đoán trên Jetson Nano + đánh giá khả năng triển khai</h3>
-          </div>
+          <div><h3>Dự đoán trên Jetson Nano + đánh giá triển khai</h3></div>
+          <button v-if="edgeStep!=='choose'" class="wizard-back-top wizard-back-top-edge" @click="goBackToEdgeChoose">← Quay lại</button>
         </div>
-        <div class="grid2">
-          <!-- Input + Verdict -->
-          <div>
-            <label>Tên mô hình (timm)</label>
-            <input v-model="query" placeholder="vd: mobilenetv3_small_100, resnet18" @keyup.enter="predict('jetson')"/>
-            <button class="btn" :disabled="busy2" @click="predict('jetson')">
-              <span v-if="busy2" class="spin"></span>Dự đoán &amp; đánh giá
-            </button>
-            <span class="suggest-label">Mô hình phổ biến:</span>
-            <div class="suggest">
-              <button v-for="m in suggestions('jetson')" :key="m" @click="query=m;predict('jetson')">{{ m }}</button>
+
+        <transition name="fade" mode="out-in">
+
+          <!-- ── BƯỚC 1: CHỌN TIÊU CHÍ ── -->
+          <div v-if="edgeStep==='choose'" key="e-choose" class="wizard-choose">
+            <div class="wizard-hero-zone wizard-hero-zone-edge">
+              <div class="edge-hero-content">
+                <div class="edge-hero-icon">🌿</div>
+                <div class="edge-hero-title">Jetson Nano</div>
+                <div class="edge-hero-sub">Edge inference · 4-core ARM A57 · 128-core Maxwell GPU</div>
+              </div>
             </div>
-            <!-- Eval mode toggle -->
-            <div class="eval-toggle">
-              <span class="etlabel">ĐÁNH GIÁ:</span>
-              <button :class="{on:evalMode==='multi'}" @click="evalMode='multi'">Đa tiêu chí</button>
-              <button :class="{on:evalMode==='single'}" @click="evalMode='single'">Chọn tiêu chí</button>
-              <button class="info-btn" @click="showCriteria=true" title="Xem bảng tiêu chí">? Xem tiêu chí</button>
+            <div class="wizard-divider-line"></div>
+            <p class="wizard-lead wizard-lead-large">Chọn tiêu chí đánh giá</p>
+            <div class="wizard-btns wizard-btns-wrap">
+              <button class="wizard-method-btn" @click="evalMode='multi'; edgeStep='name'; query=''">
+                <span class="wm-icon">⚖️</span>
+                <span class="wm-title">Đa tiêu chí</span>
+                <span class="wm-sub">Tổng hợp Accuracy · Latency · Throughput · Energy</span>
+              </button>
+              <button class="wizard-method-btn" @click="evalMode='single'; edgeStep='name'; query=''">
+                <span class="wm-icon">🎯</span>
+                <span class="wm-title">Chọn tiêu chí</span>
+                <span class="wm-sub">Tập trung vào một chỉ số quan trọng nhất</span>
+              </button>
             </div>
-            <!-- Single metric selector -->
-            <div v-if="evalMode==='single'" class="metric-sel">
+            <div class="edge-xem-tieu-chi">
+              <button class="info-btn" @click="showCriteria=true">Xem tiêu chí</button>
+            </div>
+          </div>
+
+          <!-- ── BƯỚC 2: NHẬP TÊN MÔ HÌNH ── -->
+          <div v-else-if="edgeStep==='name'" key="e-name" class="wizard-form">
+            <div class="wizard-step-bar">
+              <div class="wsb-item wsb-done"><span class="wsb-num">✓</span> Tiêu chí</div>
+              <div class="wsb-arrow">→</div>
+              <div class="wsb-item wsb-active"><span class="wsb-num">2</span> Tên mô hình</div>
+              <div class="wsb-arrow">→</div>
+              <div class="wsb-item"><span class="wsb-num">3</span> Kết quả</div>
+            </div>
+            <!-- Recap tiêu chí đã chọn -->
+            <div class="bs-model-recap">
+              <span class="bs-recap-label">Tiêu chí:</span>
+              <span class="bs-recap-name">{{ evalMode==='multi' ? 'Đa tiêu chí (4 chỉ số)' : 'Chọn tiêu chí đơn' }}</span>
+            </div>
+            <!-- Metric selector khi single mode -->
+            <div v-if="evalMode==='single'" class="metric-sel" style="margin:14px 0 4px">
               <button :class="{on:evalMetric==='acc','sel-acc':true}" @click="evalMetric='acc'">Accuracy</button>
               <button :class="{on:evalMetric==='thr','sel-thr':true}" @click="evalMetric='thr'">Throughput</button>
               <button :class="{on:evalMetric==='lat','sel-lat':true}" @click="evalMetric='lat'">Latency</button>
               <button :class="{on:evalMetric==='eng','sel-eng':true}" @click="evalMetric='eng'">Energy</button>
             </div>
-            <!-- Verdict box -->
-            <div v-if="result && verdict" class="verdict" :class="verdict.cls">
+            <div class="label-row" style="margin-top:14px">
+              <label>Tên mô hình (timm)</label>
+            </div>
+            <input v-model="query" placeholder="vd: mobilenetv3_small_100, resnet18" @keyup.enter="predict('jetson')"/>
+            <div class="format-hint">
+              💡 <strong>Jetson Nano</strong> phù hợp nhất với các mô hình nhẹ: <em>mobilenet</em>, <em>efficientnet_b0</em>, <em>resnet18</em>
+            </div>
+            <button class="btn" :disabled="!query.trim() || busy2" @click="predict('jetson')">
+              <span v-if="busy2" class="spin"></span>Dự đoán &amp; đánh giá
+            </button>
+            <span class="suggest-label">Mô hình phổ biến trên Nano:</span>
+            <div class="suggest">
+              <button v-for="m in suggestions('jetson')" :key="m" @click="query=m">{{ m }}</button>
+            </div>
+          </div>
+
+          <!-- ── LOADING ── -->
+          <div v-else-if="edgeStep==='loading'" key="e-loading" class="wizard-loading">
+            <div class="wl-ring"></div>
+            <div class="wl-text">Đang phân tích và tính toán…</div>
+            <div class="wl-sub">CatBoost đang xử lý đặc trưng mô hình</div>
+          </div>
+
+          <!-- ── BƯỚC 3: KẾT QUẢ + VERDICT ── -->
+          <div v-else-if="edgeStep==='result' && result" key="e-result" class="wizard-result edge-result">
+            <div class="wizard-result-model">
+              <span class="wm-name">{{ query }}</span>
+              <span class="src-tag" style="margin:0">{{ result.src }}</span>
+            </div>
+            <div class="metrics">
+              <div class="metric m-acc">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↑ tốt hơn</div>
+                <div class="mlabel">Accuracy</div>
+                <div class="mval">{{ result.acc.toFixed(2) }}<span class="munit">% top-1</span></div>
+                <div class="mdesc">Độ chính xác ImageNet</div>
+              </div>
+              <div class="metric m-lat">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↓ tốt hơn</div>
+                <div class="mlabel">Latency</div>
+                <div class="mval">{{ fmtLat(result.lat) }}<span class="munit">ms/ảnh</span></div>
+                <div class="mdesc">Thời gian suy luận mỗi ảnh</div>
+              </div>
+              <div class="metric m-thr">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↑ tốt hơn</div>
+                <div class="mlabel">Throughput</div>
+                <div class="mval">{{ fmtNum(result.thr) }}<span class="munit">img/s</span></div>
+                <div class="mdesc">Ảnh xử lý được mỗi giây</div>
+              </div>
+              <div class="metric m-eng">
+                <div class="metric-stripe"></div>
+                <div class="arrow">↓ tốt hơn</div>
+                <div class="mlabel">Energy</div>
+                <div class="mval">{{ fmtEng(result.eng) }}<span class="munit">mJ/ảnh</span></div>
+                <div class="mdesc">Tiêu thụ năng lượng GPU</div>
+              </div>
+            </div>
+            <!-- Verdict -->
+            <div v-if="verdict" class="verdict" :class="verdict.cls">
               <span class="vchip">{{ verdict.label }}</span>
               <div class="vbody">
                 <strong>{{ verdict.head }}</strong>
                 <small>{{ verdict.detail }}</small>
-                <!-- Score bar for multi mode -->
                 <div v-if="evalMode==='multi' && verdict.scores" class="score-bar">
                   <span v-for="(s,i) in verdict.scores" :key="i"
                     :class="['filled', s===2?verdict.clsKey:s===1?'m':'w', {filled:s>0}]"
@@ -1215,49 +1655,10 @@ footer .fsep{margin:0 12px;opacity:.4}
                 </div>
               </div>
             </div>
+            <span class="src-tag">{{ result.src }}</span>
           </div>
 
-          <!-- Metrics -->
-          <div>
-            <div v-if="result">
-              <div class="metrics">
-                <div class="metric m-acc">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↑ tốt hơn</div>
-                  <div class="mlabel">Accuracy</div>
-                  <div class="mval">{{ result.acc.toFixed(2) }}<span class="munit">% top-1</span></div>
-                  <div class="mdesc">Độ chính xác ImageNet</div>
-                </div>
-                <div class="metric m-lat">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↓ tốt hơn</div>
-                  <div class="mlabel">Latency</div>
-                  <div class="mval">{{ fmtLat(result.lat) }}<span class="munit">ms/ảnh</span></div>
-                  <div class="mdesc">Thời gian suy luận mỗi ảnh</div>
-                </div>
-                <div class="metric m-thr">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↑ tốt hơn</div>
-                  <div class="mlabel">Throughput</div>
-                  <div class="mval">{{ fmtNum(result.thr) }}<span class="munit">img/s</span></div>
-                  <div class="mdesc">Ảnh xử lý được mỗi giây</div>
-                </div>
-                <div class="metric m-eng">
-                  <div class="metric-stripe"></div>
-                  <div class="arrow">↓ tốt hơn</div>
-                  <div class="mlabel">Energy</div>
-                  <div class="mval">{{ fmtEng(result.eng) }}<span class="munit">mJ/ảnh</span></div>
-                  <div class="mdesc">Tiêu thụ năng lượng GPU</div>
-                </div>
-              </div>
-              <span class="src-tag">{{ result.src }}</span>
-            </div>
-            <div v-else class="empty-metrics">
-              <span class="em-icon">◌</span>
-              <div>Nhập tên mô hình rồi nhấn<br><strong>Dự đoán &amp; đánh giá</strong></div>
-            </div>
-          </div>
-        </div>
+        </transition>
       </div>
     </div>
 
@@ -1299,6 +1700,50 @@ footer .fsep{margin:0 12px;opacity:.4}
       <span>{{ mode==='server' ? 'RTX 3080 · Server Mode' : 'Jetson Nano · Edge Mode' }}</span>
     </footer>
       </div><!-- end .shell-right -->
+
+      <!-- ===== RIGHT LOGO PANEL ===== -->
+      <div class="logo-panel">
+        <img src="./assets/uit_logo.png" class="school-logo-img" alt="UIT Logo">
+        <div class="school-name-text">
+          Trường Đại học<br>Công nghệ Thông tin<br>– ĐHQG-HCM
+        </div>
+        <div class="faculty-label-text">
+          Khoa Mạng máy tính<br>và Truyền thông
+        </div>
+        <img src="./assets/faculty_logo.png" class="faculty-logo-img" alt="Khoa Mạng Máy Tính">
+
+        <!-- Prediction history -->
+        <div class="history-card" v-if="navPage==='server'||navPage==='edge'">
+          <div class="history-header">
+            <span style="font-size:14px">🕘</span>
+            <span class="history-title">Lịch sử dự đoán</span>
+            <span style="margin-left:auto;font-size:10px;color:var(--ink-soft);font-family:var(--sans)" v-if="predHistory.length">{{ predHistory.length }}×</span>
+          </div>
+          <div class="history-empty" v-if="!predHistory.length">
+            Chưa có dự đoán nào.
+          </div>
+          <table class="history-table" v-else>
+            <thead>
+              <tr>
+                <th>Mô hình</th>
+                <th>Nền tảng</th>
+                <th>Lat (ms)</th>
+                <th>Thr (img/s)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="h in predHistory" :key="h.time+h.model">
+                <td><span class="ht-model" :title="h.model">{{ h.model }}</span></td>
+                <td><span class="ht-plat" :class="h.platform==='RTX 3080'?'rtx':'jtx'">{{ h.platform==='RTX 3080'?'RTX':'Nano' }}</span></td>
+                <td><span class="ht-num">{{ fmtLat(h.lat) }}</span></td>
+                <td><span class="ht-num">{{ fmtNum(h.thr) }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- end .shell-body -->
   </div>
 
 </div>
@@ -1338,7 +1783,9 @@ createApp({
     busy:false, busy2:false, msg:'', msgType:'err',
     user:{}, backend:!!BACKEND_URL,
     navPage:'server', mode:'server', jtab:'collect',
-    query:'', optBs:'', maxBs:'', result:null,
+    query:'', optBs:'', maxBs:'', result:null, predHistory:[],
+    predStep:'choose', predMethod:'name',
+    edgeStep:'choose',
     evalMode:'multi', evalMetric:'thr', showCriteria:false,
     importedFile:null, importStatus:null, importSugs:[], showConvert:false,
     importExt:null, importMatchedModel:null, importParamCount:0, importErrorMsg:null,
@@ -1366,10 +1813,23 @@ createApp({
         this.importSugs=[]; this.showConvert=false; this.importExt=null;
         this.importMatchedModel=null; this.importParamCount=0; this.importErrorMsg=null;
         this.showModelSearch=false; this.modelSearch=''; this.modelSearchResults=[];
+        this.predStep='choose'; this.edgeStep='choose';
       }
     },
     mode(v){ document.body.classList.toggle('theme-jetson', v==='jetson' && this.screen==='app'); },
     screen(v){ document.body.classList.toggle('theme-jetson', this.mode==='jetson' && v==='app'); if(v==='app') this.$nextTick(()=>this.tryReconnect()); },
+    result(v){
+      if(!v) return;
+      this.predHistory.unshift({
+        model: this.query || this.importedFile || '?',
+        platform: this.mode==='server' ? 'RTX 3080' : 'Jetson Nano',
+        acc: v.acc, lat: v.lat, thr: v.thr, eng: v.eng,
+        time: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})
+      });
+      if(this.predHistory.length > 8) this.predHistory.pop();
+      if(this.mode==='server') this.predStep='result';
+      else this.edgeStep='result';
+    },
   },
   mounted(){
     if(fbReady){
@@ -1536,7 +1996,7 @@ createApp({
       }
 
       /* Upload file lên /predict-file */
-      this.importStatus=CONVERT_EXTS.includes(ext)?'converting':'uploading'; this.busy2=true;
+      this.importStatus=CONVERT_EXTS.includes(ext)?'converting':'uploading'; this.busy2=true; this.predStep='loading';
       try{
         const fd=new FormData();
         fd.append('platform','rtx');
@@ -1576,9 +2036,19 @@ createApp({
       }catch(err){
         this.importStatus='file-error';
         this.importErrorMsg=err.message;
+        this.predStep='form';
       }finally{
         this.busy2=false;
       }
+    },
+    goBackToChoose(){
+      if(this.predStep==='bs'){ this.predStep='name'; return; }
+      this.result=null; this.predStep='choose';
+      if(this.predMethod==='file'){ this.importedFile=null; this.importStatus=null; }
+      else { this.query=''; this.optBs=''; this.maxBs=''; }
+    },
+    goBackToEdgeChoose(){
+      this.result=null; this.edgeStep='choose'; this.query='';
     },
     async applyConvert(name){
       this.query=name; this.importedFile=name; this.importStatus='converted'; this.showConvert=false;
@@ -1590,6 +2060,7 @@ createApp({
     async predict(platform){
       const q=this.norm(this.query);
       if(!q)return;
+      if(platform==='jetson') this.edgeStep='loading'; else this.predStep='loading';
       this.busy2=true;this.result=null;
       try{
         if(BACKEND_URL){
@@ -1606,6 +2077,8 @@ createApp({
           else { this.result=this.heuristic(platform,q); }
         }
       }catch(e){
+        if(platform==='jetson') this.edgeStep='name';
+        else this.predStep = this.predMethod==='file' ? 'form' : 'name';
         if(this.importStatus){
           this.flash('Tên mô hình "'+this.importedFile+'" không tìm thấy hoặc không hợp lệ. Vui lòng chọn tên khác từ danh sách tra cứu.');
           this.importStatus=null; this.importedFile=null; this.showConvert=false;
