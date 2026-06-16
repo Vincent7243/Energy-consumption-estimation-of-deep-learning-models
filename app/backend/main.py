@@ -636,8 +636,8 @@ async def ws_ssh(ws: WebSocket):
         import paramiko
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        client.connect(cfg['host'], username=cfg['user'],
-                       password=cfg.get('password'), timeout=15)
+        client.connect(cfg['host'], port=int(cfg.get('port', 22)), username=cfg['user'],
+               password=cfg.get('password'), timeout=15)
 
         model = cfg.get('model', 'resnet18')
         cmd = f"cd ~/edgebench && python3 flops_csv2.py --model {model} 2>&1"

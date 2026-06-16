@@ -1496,6 +1496,7 @@ footer .fsep{margin:0 12px;opacity:.4}
         </div>
         <div class="ssh-grid">
           <div><label>Host / Địa chỉ IP</label><input v-model="ssh.host" placeholder="192.168.0.119"/></div>
+          <div><label>Port</label><input v-model="ssh.port" placeholder="22"/></div>
           <div><label>Username</label><input v-model="ssh.user" placeholder="tb1"/></div>
           <div><label>Password</label><input v-model="ssh.password" type="password" placeholder="••••••" autocomplete="new-password"/></div>
           <div><label>Tên mô hình</label><input v-model="ssh.model" placeholder="resnet18"/></div>
@@ -1787,7 +1788,7 @@ createApp({
     importedFile:null, importStatus:null, importSugs:[], showConvert:false,
     importExt:null, importMatchedModel:null, importParamCount:0, importErrorMsg:null,
     showModelSearch:false, modelSearch:'', modelList:[], modelListLoading:false, modelSearchResults:[],
-    ssh:{host:'192.168.0.119',user:'tb1',password:'',model:'resnet18'},
+    ssh:{host:'192.168.0.119',port:22,user:'tb1',password:'',model:'resnet18'},
     termHtml:'<span class="c-dim">// terminal sẵn sàng — nhấn "Chạy benchmark"</span>\n',
     termRunning:false, termPaused:false,
     ws:null,
@@ -2204,7 +2205,7 @@ createApp({
       const token=localStorage.getItem('eb_token')||'';
       ws.onopen=()=>{
         this.typeLine('c-dim','WebSocket đã kết nối — gửi lệnh SSH...');
-        ws.send(JSON.stringify({host:this.ssh.host,user:this.ssh.user,password:this.ssh.password,model:this.ssh.model||'resnet18',token}));
+        ws.send(JSON.stringify({host:this.ssh.host,port:Number(this.ssh.port)||22,user:this.ssh.user,password:this.ssh.password,model:this.ssh.model||'resnet18',token}));
       };
       ws.onmessage=(ev)=>{ this.appendLine(ev.data); };
       ws.onerror=()=>{
