@@ -9,12 +9,9 @@ Chạy:  uvicorn main:app --reload --port 8000
 Cần:   pip install -r requirements.txt   và đã chạy train_models.py cho cả 2 platform.
 """
 import asyncio
-import json, hashlib, os, sqlite3, uuid, random, smtplib, ssl, time, tempfile
+import json, hashlib, os, sqlite3, uuid, random, tempfile
 from collections import OrderedDict
 from pathlib import Path as FPath
-from dotenv import load_dotenv; load_dotenv()
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 import numpy as np, pandas as pd
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
@@ -31,45 +28,6 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 _ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'assets')
 app.mount("/assets", StaticFiles(directory=_ASSETS), name="assets")
-
-# --- Email OTP config (đọc từ env khi khởi động uvicorn) ---
-MAIL_USER = os.environ.get('MAIL_USER', '')   # vd: edgebench@gmail.com
-MAIL_PASS = os.environ.get('MAIL_PASS', '')   # Gmail App Password (16 ký tự)
-_pending_otp: dict = {}  # email → {otp, display_name, password_hash, salt, uid, expires_at}
-
-def _send_otp_email(to_email: str, display_name: str, otp: str):
-    """Gửi OTP qua Gmail SMTP. Nếu chưa cấu hình env, in ra console (dev mode)."""
-    if not MAIL_USER or not MAIL_PASS:
-        print(f'[OTP DEV] {to_email} → {otp}')
-        return
-    msg = MIMEMultipart('alternative')
-    msg['Subject'] = f'[EdgeBench] Mã xác nhận đăng ký: {otp}'
-    msg['From']    = MAIL_USER
-    msg['To']      = to_email
-    html = f"""
-    <div style="font-family:system-ui,sans-serif;max-width:480px;margin:auto;padding:32px 24px">
-      <h2 style="color:#6c63ff;margin-bottom:4px">EdgeBench Predictor</h2>
-      <p style="color:#888;font-size:13px;margin-top:0">Hệ thống dự đoán hiệu năng mô hình AI</p>
-      <hr style="border:none;border-top:1px solid #eee;margin:20px 0"/>
-      <p>Xin chào <strong>{display_name}</strong>,</p>
-      <p>Mã xác nhận đăng ký tài khoản của bạn:</p>
-      <div style="font-size:40px;font-weight:700;letter-spacing:10px;text-align:center;
-                  padding:24px;background:#f8f7ff;border:2px solid #6c63ff;border-radius:12px;
-                  color:#6c63ff;margin:20px 0">{otp}</div>
-      <p style="color:#555">Mã có hiệu lực trong <strong>10 phút</strong>.</p>
-      <p style="color:#aaa;font-size:12px">Nếu bạn không yêu cầu đăng ký, hãy bỏ qua email này.</p>
-    </div>"""
-    msg.attach(MIMEText(html, 'html', 'utf-8'))
-    ctx = ssl.create_default_context()
-    try:
-        with smtplib.SMTP('smtp.gmail.com', 587, timeout=15) as s:
-            s.starttls(context=ctx)
-            s.login(MAIL_USER, MAIL_PASS)
-            s.sendmail(MAIL_USER, to_email, msg.as_bytes())
-        print(f'[MAIL OK] {to_email}')
-    except Exception as e:
-        print(f'[MAIL ERROR] {to_email} → {e}')
-        raise  # để register endpoint biết gửi thất bại
 
 # --- SQLite auth ---
 _DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'users.db')
@@ -98,8 +56,6 @@ class AuthReq(BaseModel):
     password: str
     display_name: str = ''
 
-MAX_PENDING_OTP = 10
-
 @app.post('/auth/register')
 async def auth_register(r: AuthReq):
     c = _db(); row = c.execute('SELECT id FROM users WHERE email=?', (r.email,)).fetchone(); c.close()
@@ -119,34 +75,6 @@ async def auth_register(r: AuthReq):
     token = str(uuid.uuid4())
     c = _db(); c.execute('INSERT INTO sessions (token,user_id) VALUES (?,?)', (token, uid)); c.commit(); c.close()
     return {'token': token, 'email': r.email, 'display_name': r.display_name}
-
-class OtpReq(BaseModel):
-    email: str
-    otp: str
-
-@app.post('/auth/verify-otp')
-def auth_verify_otp(r: OtpReq):
-    pending = _pending_otp.get(r.email)
-    if not pending:
-        raise HTTPException(status_code=400, detail='Không tìm thấy yêu cầu đăng ký. Hãy đăng ký lại.')
-    if time.time() > pending['expires_at']:
-        _pending_otp.pop(r.email, None)
-        raise HTTPException(status_code=400, detail='Mã OTP đã hết hạn. Hãy đăng ký lại.')
-    if r.otp != pending['otp']:
-        raise HTTPException(status_code=400, detail='Mã OTP không đúng.')
-    # OTP hợp lệ → tạo user
-    _pending_otp.pop(r.email, None)
-    try:
-        c = _db()
-        c.execute('INSERT INTO users (id,email,display_name,password_hash,salt) VALUES (?,?,?,?,?)',
-                  (pending['uid'], r.email, pending['display_name'],
-                   pending['password_hash'], pending['salt']))
-        c.commit(); c.close()
-    except sqlite3.IntegrityError:
-        raise HTTPException(status_code=400, detail='Email đã được đăng ký.')
-    token = str(uuid.uuid4())
-    c = _db(); c.execute('INSERT INTO sessions (token,user_id) VALUES (?,?)', (token, pending['uid'])); c.commit(); c.close()
-    return {'token': token, 'email': r.email, 'display_name': pending['display_name']}
 
 @app.post('/auth/login')
 def auth_login(r: AuthReq):
