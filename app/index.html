@@ -368,6 +368,70 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
 .ht-plat.jtx{background:rgba(8,145,178,.12);color:#0891b2}
 .ht-num{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
 
+/* ---- history full page ---- */
+.page-history{max-width:940px;margin:0 auto;padding-bottom:48px}
+.hist-tabs{
+  display:flex;gap:0;margin-bottom:24px;
+  border-bottom:1.5px solid var(--line);
+}
+.hist-tab{
+  display:flex;align-items:center;gap:9px;
+  padding:12px 24px;border:0;background:transparent;
+  font-size:13px;font-weight:700;color:var(--ink-soft);cursor:pointer;font-family:var(--sans);
+  border-bottom:2.5px solid transparent;margin-bottom:-1.5px;
+  transition:color .15s,border-color .15s;border-radius:0;
+}
+.hist-tab:hover{color:var(--ink)}
+.hist-tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.hist-tab-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:1px}
+.hist-tab-count{
+  font-size:10.5px;font-family:var(--mono);
+  background:color-mix(in srgb,var(--accent) 12%,transparent);
+  color:var(--accent);padding:1px 7px;border-radius:10px;font-weight:700;
+}
+.hist-section{width:100%;overflow-x:auto}
+.hist-empty{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  padding:60px 0;color:var(--ink-soft);font-size:13px;text-align:center;line-height:1.65;
+}
+.hist-empty-icon{font-size:38px;line-height:1}
+.hist-table-full{
+  width:100%;border-collapse:collapse;font-size:17px;font-family:var(--sans);
+}
+.hist-table-full th{
+  text-align:left;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--ink-soft);padding:0 14px 14px;border-bottom:2.5px solid var(--line);white-space:nowrap;
+}
+.hist-table-full td{
+  padding:16px 14px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle;
+  font-size:17px;font-weight:700;
+}
+.hist-table-full tr:last-child td{border-bottom:none}
+.hist-table-full tr:hover td{background:var(--bg2)}
+.hist-idx{color:var(--ink-soft);font-family:var(--mono);font-size:14px;font-weight:600;width:34px;text-align:right}
+.hist-bs{
+  font-family:var(--mono);font-size:16px;font-weight:700;
+  padding:4px 12px;border-radius:7px;
+  background:color-mix(in srgb,var(--accent) 9%,transparent);color:var(--accent);
+}
+.hist-bs.hist-auto{
+  background:color-mix(in srgb,var(--ok) 10%,transparent);
+  color:var(--ok);font-style:italic;
+}
+.hist-time{font-family:var(--mono);font-size:16px;font-weight:600;color:var(--ink-soft)}
+.hist-badge-multi{
+  font-size:15px;font-weight:700;padding:5px 14px;border-radius:9px;
+  background:rgba(99,102,241,.11);color:#6366f1;white-space:nowrap;
+}
+.hist-badge-single{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:15px;font-weight:700;padding:5px 14px;border-radius:9px;
+  background:rgba(8,145,178,.10);color:#0891b2;white-space:nowrap;
+}
+.hist-badge-metric{font-weight:800;color:#0891b2}
+.hist-model{font-family:var(--mono);font-size:17px;font-weight:700;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.hist-table-full .ht-num{font-size:17px;font-weight:700;color:var(--ink)}
+
 /* mode bar */
 .modebar{display:flex;align-items:flex-start;gap:16px;margin-bottom:26px;flex-wrap:wrap}
 .seg{
@@ -562,6 +626,87 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
 .subtabs button.on .stnum{background:color-mix(in srgb,#fff 15%,transparent);border-color:transparent;color:#fff}
 .theme-jetson .subtabs button.on{color:#fff}
 .theme-jetson .subtabs button.on .stnum{color:#fff}
+
+/* ---- pareto panel ---- */
+.pareto-panel{padding:0}
+.pareto-input-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px}
+@media(max-width:700px){.pareto-input-grid{grid-template-columns:1fr}}
+.pareto-label{font-size:12px;font-weight:700;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;display:block}
+.pareto-textarea{
+  width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;
+  font-family:var(--mono);font-size:13px;background:var(--bg2);color:var(--ink);
+  resize:vertical;min-height:110px;transition:border-color .15s;outline:none;
+}
+.pareto-textarea:focus{border-color:var(--accent)}
+.pareto-constraint{position:relative}
+.pareto-constraint input{
+  width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 46px 10px 14px;
+  font-size:14px;font-weight:600;background:var(--bg2);color:var(--ink);outline:none;
+  transition:border-color .15s;font-family:var(--mono);
+}
+.pareto-constraint input:focus{border-color:var(--accent)}
+.pareto-unit{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:11px;font-weight:600;color:var(--ink-soft);font-family:var(--mono);pointer-events:none;
+}
+.pareto-preset-btn{
+  border:1.5px dashed var(--accent);background:color-mix(in srgb,var(--accent) 6%,transparent);
+  color:var(--accent);border-radius:10px;padding:9px 16px;font-size:12.5px;font-weight:700;
+  cursor:pointer;font-family:var(--sans);transition:background .15s,transform .15s;white-space:nowrap;
+}
+.pareto-preset-btn:hover{background:color-mix(in srgb,var(--accent) 12%,transparent);transform:translateY(-1px)}
+.pareto-run-btn{
+  width:100%;margin-top:6px;
+  background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,#14b8a6));
+  color:#fff;border:0;border-radius:13px;padding:15px;font-weight:700;font-size:15px;
+  cursor:pointer;transition:filter .15s,transform .15s;font-family:var(--sans);
+}
+.pareto-run-btn:hover:not(:disabled){filter:brightness(1.08);transform:translateY(-1px)}
+.pareto-run-btn:disabled{opacity:.5;cursor:not-allowed}
+/* results */
+.pareto-summary{
+  display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;
+}
+.psumm-card{
+  flex:1;min-width:120px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:12px;padding:14px 18px;text-align:center;
+}
+.psumm-num{font-size:26px;font-weight:800;font-family:var(--mono);color:var(--ink)}
+.psumm-num.pareto-color{color:var(--ok)}
+.psumm-num.budget-color{color:var(--accent)}
+.psumm-num.over-color{color:#c82e1e}
+.psumm-label{font-size:11px;color:var(--ink-soft);margin-top:3px;font-weight:600;letter-spacing:.04em}
+.pareto-table{width:100%;border-collapse:collapse;font-size:14px;font-family:var(--sans)}
+.pareto-table th{
+  text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--ink-soft);padding:0 12px 10px;border-bottom:2px solid var(--line);white-space:nowrap;
+}
+.pareto-table td{padding:12px 12px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle}
+.pareto-table tr:last-child td{border-bottom:none}
+.pareto-table tr:hover td{background:var(--bg2)}
+.pareto-table tr.row-pareto td{background:color-mix(in srgb,var(--ok) 4%,transparent)}
+.pareto-table tr.row-pareto:hover td{background:color-mix(in srgb,var(--ok) 8%,transparent)}
+.p-name{font-family:var(--mono);font-size:13.5px;font-weight:700}
+.p-num{font-family:var(--mono);font-size:13.5px;font-weight:700;color:var(--ink)}
+.p-num.dim{color:var(--ink-soft)}
+.badge-pareto{font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px;background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok);white-space:nowrap}
+.badge-feasible{font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);white-space:nowrap}
+.badge-over{font-size:12px;font-weight:700;padding:4px 11px;border-radius:8px;background:rgba(200,46,30,.10);color:#c82e1e;white-space:nowrap}
+.badge-notfound{font-size:12px;font-weight:600;padding:4px 11px;border-radius:8px;background:var(--bg2);color:var(--ink-soft);white-space:nowrap}
+.pareto-insight{
+  margin-top:20px;border-radius:14px;padding:18px 22px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--ok) 7%,var(--bg)),color-mix(in srgb,var(--accent) 5%,var(--bg)));
+  border:1.5px solid color-mix(in srgb,var(--ok) 22%,transparent);
+}
+.pareto-insight-title{font-size:13px;font-weight:800;color:var(--ok);margin-bottom:10px;letter-spacing:.03em}
+.pareto-insight-body{font-size:13.5px;line-height:1.7;color:var(--ink)}
+.pareto-insight strong{color:var(--ink)}
+.pareto-back{
+  border:1.5px solid var(--line);background:var(--bg2);color:var(--ink-soft);
+  border-radius:10px;padding:9px 18px;font-weight:700;font-size:13px;cursor:pointer;
+  font-family:var(--sans);transition:background .15s;margin-bottom:20px;
+}
+.pareto-back:hover{background:var(--bg);color:var(--ink)}
 
 /* ssh form */
 .ssh-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:11px;align-items:flex-end;margin-bottom:18px}
@@ -797,6 +942,39 @@ footer .fsep{margin:0 12px;opacity:.4}
 }
 .edge-xem-tieu-chi .info-btn:hover{background:rgba(8,145,178,.16);transform:translateY(-1px)}
 
+/* ---- inline criteria summary (bottom-right of wizard-form) ---- */
+.criteria-inline-panel{margin-top:20px;display:flex;justify-content:flex-end}
+.criteria-inline-box{
+  background:color-mix(in srgb,var(--accent) 4%,var(--bg2));
+  border:1.5px solid color-mix(in srgb,var(--accent) 22%,transparent);
+  border-radius:14px;padding:14px 18px;max-width:360px;width:100%;
+}
+.criteria-inline-box .ci-title{
+  font-size:10.5px;font-weight:700;font-family:var(--mono);letter-spacing:.09em;
+  color:var(--accent);margin-bottom:10px;text-transform:uppercase;
+}
+.criteria-inline-box table{width:100%;border-collapse:collapse;font-size:11.5px}
+.criteria-inline-box th{
+  text-align:left;padding:4px 7px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.05em;color:var(--ink-soft);border-bottom:1px solid var(--line);
+}
+.criteria-inline-box td{padding:4px 7px;border-bottom:1px solid var(--line);color:var(--ink);font-size:11.5px}
+.criteria-inline-box td:first-child{font-weight:600;font-family:var(--mono)}
+.criteria-inline-box .ci-strong{color:var(--ok);font-weight:700}
+.criteria-inline-box .ci-mid{color:var(--accent-2);font-weight:700}
+.criteria-inline-box .ci-weak{color:#c82e1e;font-weight:700}
+.criteria-inline-box .ci-footer{
+  font-size:10.5px;color:var(--ink-soft);margin-top:9px;line-height:1.55;
+  border-top:1px solid var(--line);padding-top:8px;
+}
+.criteria-inline-box .ci-score-chips{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.criteria-inline-box .ci-chip{
+  font-size:10.5px;font-family:var(--mono);padding:3px 9px;border-radius:6px;font-weight:700;
+}
+.criteria-inline-box .ci-chip.s{background:color-mix(in srgb,var(--ok) 14%,transparent);color:var(--ok)}
+.criteria-inline-box .ci-chip.m{background:color-mix(in srgb,var(--accent-2) 14%,transparent);color:var(--accent-2)}
+.criteria-inline-box .ci-chip.w{background:rgba(200,46,30,.11);color:#c82e1e}
+
 /* ---- edge result layout ---- */
 .edge-result .metrics{margin-bottom:18px}
 .edge-result .verdict{margin-top:0}
@@ -1024,6 +1202,15 @@ footer .fsep{margin:0 12px;opacity:.4}
             <span class="nav-sub">Jetson Nano · SSH benchmark</span>
           </span>
         </button>
+        <div class="nav-sep"></div>
+        <div class="nav-section-label">CÔNG CỤ</div>
+        <button class="nav-btn" :class="{on:navPage==='history'}" @click="navPage='history'">
+          <span class="nav-icon">🕘</span>
+          <span class="nav-text">
+            <span class="nav-title">Lịch sử</span>
+            <span class="nav-sub">Tất cả kết quả dự đoán</span>
+          </span>
+        </button>
 
         <!-- Platform spec cards -->
         <div class="platform-cards" v-if="navPage==='server'||navPage==='edge'">
@@ -1182,8 +1369,114 @@ footer .fsep{margin:0 12px;opacity:.4}
       </div>
     </div>
 
+    <!-- ---- HISTORY PAGE ---- -->
+    <div v-else-if="navPage==='history'" class="page-history">
+      <div class="page-hero">
+        <h2>Lịch sử <em>dự đoán</em></h2>
+        <p>Toàn bộ kết quả dự đoán trong phiên hiện tại trên cả hai nền tảng Server và Edge.</p>
+      </div>
+
+      <!-- Tab chọn nền tảng -->
+      <div class="hist-tabs">
+        <button class="hist-tab" :class="{on:histTab==='server'}" @click="histTab='server'">
+          <span class="hist-tab-dot" style="background:#6366f1"></span>
+          Server · RTX 3080
+          <span class="hist-tab-count" v-if="predHistory.filter(h=>h.platform==='RTX 3080').length">
+            {{ predHistory.filter(h=>h.platform==='RTX 3080').length }}
+          </span>
+        </button>
+        <button class="hist-tab" :class="{on:histTab==='edge'}" @click="histTab='edge'">
+          <span class="hist-tab-dot" style="background:#0891b2"></span>
+          Edge · Jetson Nano
+          <span class="hist-tab-count" v-if="predHistory.filter(h=>h.platform==='Jetson Nano').length">
+            {{ predHistory.filter(h=>h.platform==='Jetson Nano').length }}
+          </span>
+        </button>
+      </div>
+
+      <!-- SERVER HISTORY -->
+      <div v-if="histTab==='server'" class="hist-section">
+        <div class="hist-empty" v-if="!predHistory.filter(h=>h.platform==='RTX 3080').length">
+          <span class="hist-empty-icon">📭</span>
+          <span>Chưa có dự đoán nào trên Server.<br>Hãy thử tại trang <strong>Server · RTX 3080</strong>.</span>
+        </div>
+        <table class="hist-table-full" v-else>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Mô hình</th>
+              <th>Acc (%)</th>
+              <th>Lat (ms)</th>
+              <th>Thr (img/s)</th>
+              <th>Energy (mJ)</th>
+              <th>Optimal BS</th>
+              <th>Max BS</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(h,i) in predHistory" :key="'s'+i">
+              <tr v-if="h.platform==='RTX 3080'">
+                <td class="hist-idx">{{ i+1 }}</td>
+                <td><span class="hist-model" :title="h.model">{{ h.model }}</span></td>
+                <td><span class="ht-num">{{ h.acc.toFixed(2) }}</span></td>
+                <td><span class="ht-num">{{ fmtLat(h.lat) }}</span></td>
+                <td><span class="ht-num">{{ fmtNum(h.thr) }}</span></td>
+                <td><span class="ht-num">{{ fmtEng(h.eng) }}</span></td>
+                <td><span class="hist-bs" :class="{'hist-auto':h.optBs==='auto'}">{{ h.optBs }}</span></td>
+                <td><span class="hist-bs" :class="{'hist-auto':h.maxBs==='auto'}">{{ h.maxBs }}</span></td>
+                <td><span class="hist-time">{{ h.time }}</span></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- EDGE HISTORY -->
+      <div v-if="histTab==='edge'" class="hist-section">
+        <div class="hist-empty" v-if="!predHistory.filter(h=>h.platform==='Jetson Nano').length">
+          <span class="hist-empty-icon">📭</span>
+          <span>Chưa có dự đoán nào trên Edge.<br>Hãy thử tại trang <strong>Edge · Jetson Nano</strong>.</span>
+        </div>
+        <table class="hist-table-full" v-else>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Mô hình</th>
+              <th>Acc (%)</th>
+              <th>Lat (ms)</th>
+              <th>Thr (img/s)</th>
+              <th>Energy (mJ)</th>
+              <th>Tiêu chí đánh giá</th>
+              <th>Thời gian</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(h,i) in predHistory" :key="'e'+i">
+              <tr v-if="h.platform==='Jetson Nano'">
+                <td class="hist-idx">{{ i+1 }}</td>
+                <td><span class="hist-model" :title="h.model">{{ h.model }}</span></td>
+                <td><span class="ht-num">{{ h.acc.toFixed(2) }}</span></td>
+                <td><span class="ht-num">{{ fmtLat(h.lat) }}</span></td>
+                <td><span class="ht-num">{{ fmtNum(h.thr) }}</span></td>
+                <td><span class="ht-num">{{ fmtEng(h.eng) }}</span></td>
+                <td>
+                  <span v-if="h.evalMode==='multi'" class="hist-badge-multi">Đa tiêu chí</span>
+                  <span v-else class="hist-badge-single">
+                    1 tiêu chí ·
+                    <span class="hist-badge-metric">{{ {acc:'Accuracy',lat:'Latency',thr:'Throughput',eng:'Energy'}[h.evalMetric] }}</span>
+                  </span>
+                </td>
+                <td><span class="hist-time">{{ h.time }}</span></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- ---- SERVER / EDGE CONTENT ---- -->
-    <div v-else>
+    <div v-else-if="navPage==='server'||navPage==='edge'">
     <transition name="fade" mode="out-in">
 
     <!-- ---- SERVER MODE ---- -->
@@ -1484,6 +1777,9 @@ footer .fsep{margin:0 12px;opacity:.4}
         <button :class="{on:jtab==='predict'}" @click="jtab='predict'">
           <span class="stnum">2</span>Dự đoán + đánh giá
         </button>
+        <button :class="{on:jtab==='pareto'}" @click="jtab='pareto'">
+          <span class="stnum">3</span>Phân tích Pareto
+        </button>
       </div>
 
       <!-- Tab 1: Collect -->
@@ -1520,7 +1816,7 @@ footer .fsep{margin:0 12px;opacity:.4}
       </div>
 
       <!-- Tab 2: Predict + Verdict — wizard flow -->
-      <div class="panel panel-jetson panel-jetson-predict" v-else>
+      <div class="panel panel-jetson panel-jetson-predict" v-else-if="jtab==='predict'">
         <div class="panel-header">
           <div class="panel-icon">📊</div>
           <div><h3>Dự đoán trên Jetson Nano + đánh giá triển khai</h3></div>
@@ -1592,6 +1888,36 @@ footer .fsep{margin:0 12px;opacity:.4}
             <div class="suggest">
               <button v-for="m in suggestions('jetson')" :key="m" @click="query=m">{{ m }}</button>
             </div>
+            <!-- Inline criteria & scoring panel (only in multi mode) -->
+            <div v-if="evalMode==='multi'" class="criteria-inline-panel">
+              <div class="criteria-inline-box">
+                <div class="ci-title">📋 Tiêu chí &amp; cách chấm điểm</div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Tiêu chí</th>
+                      <th class="ci-strong">MẠNH (2đ)</th>
+                      <th class="ci-mid">TB (1đ)</th>
+                      <th class="ci-weak">YẾU (0đ)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Accuracy</td><td class="ci-strong">≥ 75%</td><td class="ci-mid">≥ 65%</td><td class="ci-weak">&lt; 65%</td></tr>
+                    <tr><td>Latency</td><td class="ci-strong">&lt; 50 ms</td><td class="ci-mid">&lt; 150 ms</td><td class="ci-weak">≥ 150 ms</td></tr>
+                    <tr><td>Throughput</td><td class="ci-strong">≥ 40 img/s</td><td class="ci-mid">≥ 12 img/s</td><td class="ci-weak">&lt; 12 img/s</td></tr>
+                    <tr><td>Energy</td><td class="ci-strong">&lt; 100 mJ/ảnh</td><td class="ci-mid">&lt; 300 mJ/ảnh</td><td class="ci-weak">≥ 300 mJ/ảnh</td></tr>
+                  </tbody>
+                </table>
+                <div class="ci-footer">
+                  Mỗi tiêu chí cho 0–2 điểm · Tổng tối đa: <strong>8 điểm</strong>
+                  <div class="ci-score-chips">
+                    <span class="ci-chip s">≥ 6 → MẠNH</span>
+                    <span class="ci-chip m">≥ 3 → Trung bình</span>
+                    <span class="ci-chip w">&lt; 3 → Yếu</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- ── LOADING ── -->
@@ -1656,10 +1982,146 @@ footer .fsep{margin:0 12px;opacity:.4}
 
         </transition>
       </div>
+
+      <!-- Tab 3: Phân tích Pareto -->
+      <div class="panel panel-jetson pareto-panel" v-else-if="jtab==='pareto'">
+        <div class="panel-header">
+          <div class="panel-icon"></div>
+          <div><h3>Phân tích Pareto — Lựa chọn mô hình tối ưu đa tiêu chí</h3></div>
+        </div>
+
+        <!-- BƯỚC INPUT -->
+        <div v-if="paretoStep==='input'">
+          <div style="margin-bottom:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <span class="pareto-label" style="margin-bottom:0">Danh sách mô hình ứng viên</span>
+              <button class="pareto-preset-btn" @click="loadParetoPreset">Dùng bộ mẫu Jetson (12 mô hình)</button>
+            </div>
+            <textarea class="pareto-textarea" v-model="paretoModels"
+              placeholder="Nhập tên mô hình, mỗi dòng hoặc phân cách bằng dấu phẩy&#10;vd: resnet18, efficientnet_b0, mobilenetv2_100, mvitv2_large"></textarea>
+          </div>
+
+          <div style="margin-bottom:6px">
+            <span class="pareto-label">Ràng buộc triển khai</span>
+          </div>
+          <div class="pareto-input-grid">
+            <div>
+              <span class="pareto-label">Accuracy tối thiểu</span>
+              <div class="pareto-constraint">
+                <input type="number" v-model="paretoMinAcc" min="0" max="100" step="0.5" placeholder="70"/>
+                <span class="pareto-unit">%</span>
+              </div>
+            </div>
+            <div>
+              <span class="pareto-label">Latency SLA tối đa</span>
+              <div class="pareto-constraint">
+                <input type="number" v-model="paretoMaxLat" min="1" step="5" placeholder="100"/>
+                <span class="pareto-unit">ms</span>
+              </div>
+            </div>
+            <div>
+              <span class="pareto-label">Ngân sách Energy tối đa</span>
+              <div class="pareto-constraint">
+                <input type="number" v-model="paretoMaxEng" min="1" step="10" placeholder="200"/>
+                <span class="pareto-unit">mJ</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="pareto-run-btn" :disabled="!paretoModels.trim()" @click="runPareto">
+            Phân tích Pareto →
+          </button>
+        </div>
+
+        <!-- BƯỚC LOADING -->
+        <div v-else-if="paretoStep==='loading'" style="padding:60px 0;text-align:center">
+          <div class="wl-ring" style="margin:0 auto 18px"></div>
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">Đang tra cứu và phân tích…</div>
+          <div style="font-size:13px;color:var(--ink-soft);margin-top:6px">Tính toán tập Pareto-optimal từ dữ liệu Jetson Nano</div>
+        </div>
+
+        <!-- BƯỚC KẾT QUẢ -->
+        <div v-else-if="paretoStep==='result' && paretoResults">
+          <button class="pareto-back" @click="paretoStep='input'">← Nhập lại</button>
+
+          <!-- Summary cards -->
+          <div class="pareto-summary">
+            <div class="psumm-card">
+              <div class="psumm-num">{{ paretoResults.length }}</div>
+              <div class="psumm-label">Mô hình phân tích</div>
+            </div>
+            <div class="psumm-card">
+              <div class="psumm-num pareto-color">{{ paretoResults.filter(m=>m.isPareto).length }}</div>
+              <div class="psumm-label">Pareto tối ưu</div>
+            </div>
+            <div class="psumm-card">
+              <div class="psumm-num budget-color">{{ paretoResults.filter(m=>m.passConstraints&&!m.isPareto).length }}</div>
+              <div class="psumm-label">Trong ngân sách</div>
+            </div>
+            <div class="psumm-card">
+              <div class="psumm-num over-color">{{ paretoResults.filter(m=>!m.passConstraints&&!m.notFound).length }}</div>
+              <div class="psumm-label">Vượt ràng buộc</div>
+            </div>
+          </div>
+
+          <!-- Bảng kết quả -->
+          <table class="pareto-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Mô hình</th>
+                <th>Acc (%)</th>
+                <th>Latency (ms)</th>
+                <th>Energy (mJ)</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(m,i) in paretoResults" :key="m.name" :class="{'row-pareto':m.isPareto}">
+                <td style="color:var(--ink-soft);font-family:var(--mono);font-size:12px">{{ i+1 }}</td>
+                <td><span class="p-name">{{ m.name }}</span></td>
+                <td>
+                  <span v-if="!m.notFound" class="p-num" :class="{dim:!m.passConstraints||m.isPareto===false}">
+                    {{ m.acc.toFixed(1) }}
+                  </span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span v-if="!m.notFound" class="p-num"
+                    :style="m.lat/1e6>paretoMaxLat?'color:#c82e1e':''">
+                    {{ (m.lat/1e6).toFixed(1) }}
+                  </span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span v-if="!m.notFound" class="p-num"
+                    :style="m.eng/1e3>paretoMaxEng?'color:#c82e1e':''">
+                    {{ (m.eng/1e3).toFixed(1) }}
+                  </span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
+                  <span v-else class="badge-over">Vượt ràng buộc</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Insight box -->
+          <div class="pareto-insight" v-if="paretoInsight">
+            <div class="pareto-insight-title">💡 Nhận xét từ dữ liệu Jetson Nano</div>
+            <div class="pareto-insight-body" v-html="paretoInsight"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     </transition>
-    </div><!-- end v-else server/edge -->
+    </div><!-- end v-else-if server/edge -->
 
       </div><!-- end .main-content -->
 
@@ -1763,6 +2225,15 @@ const BACKEND_URL = location.hostname === 'localhost' || location.hostname === '
 const DEMO = {"rtx":[{"name":"convnext_tiny","acc":82.69,"lat":88259814.53,"thr":589.17,"eng":549223.81,"params":28589128,"macs":515465224,"act":90832056},{"name":"deit_small_patch16_224","acc":79.86,"lat":72841051.4,"thr":1208.14,"eng":274267.88,"params":22050664,"macs":79557352,"act":31471184},{"name":"densenet121","acc":76.48,"lat":41902685.11,"thr":553.82,"eng":630721.43,"params":7978856,"macs":4684375016,"act":94292688},{"name":"densenet169","acc":75.92,"lat":36070461.7,"thr":942.6,"eng":346715.91,"params":14149480,"macs":3359844328,"act":67714896},{"name":"efficientnet_b0","acc":77.7,"lat":45474128.41,"thr":2418.96,"eng":136944.83,"params":5288548,"macs":385825092,"act":32764360},{"name":"efficientnet_b1","acc":78.8,"lat":42306206.72,"thr":1323.68,"eng":249705.1,"params":7794184,"macs":743318840,"act":60540272},{"name":"efficientnet_b2","acc":80.61,"lat":46297381.2,"thr":950.38,"eng":348701.42,"params":9109994,"macs":1087545866,"act":80344980},{"name":"inception_v3","acc":78.8,"lat":47128016.23,"thr":891.26,"eng":352821.38,"params":23834568,"macs":5713217096,"act":47896912},{"name":"mnasnet_small","acc":66.2,"lat":69717999.8,"thr":6951.74,"eng":44267.44,"params":2030264,"macs":68342784,"act":10535456},{"name":"mobilenetv2_100","acc":72.94,"lat":45629005.56,"thr":1959.88,"eng":153562.32,"params":3504872,"macs":300775272,"act":32482256},{"name":"mobilenetv3_large_100","acc":77.91,"lat":61149159.36,"thr":2921.63,"eng":103208.59,"params":5483032,"macs":216597120,"act":21925120},{"name":"mobilenetv3_small_100","acc":67.64,"lat":66706467.1,"thr":8651.45,"eng":35746.93,"params":2542856,"macs":56515312,"act":6887712},{"name":"regnetx_002","acc":68.76,"lat":22250716.72,"thr":6198.05,"eng":56834.99,"params":2684792,"macs":199040872,"act":12661584},{"name":"regnety_004","acc":74.01,"lat":15994326.05,"thr":2042.5,"eng":151436.87,"params":4344144,"macs":401849056,"act":23315656},{"name":"resnet101","acc":82.32,"lat":21927020.36,"thr":295.33,"eng":1185455.22,"params":44549160,"macs":12894969704,"act":105471440},{"name":"resnet18","acc":73.16,"lat":24121493.03,"thr":2189.13,"eng":154091,"params":11689512,"macs":2998450536,"act":17007056},{"name":"resnet34","acc":77.94,"lat":24976070.03,"thr":869.9,"eng":406796.71,"params":21797672,"macs":6056105576,"act":26338256},{"name":"resnet50","acc":81.24,"lat":48447462.7,"thr":664.47,"eng":499730.17,"params":25557032,"macs":6758388584,"act":71630288},{"name":"resnext50_32x4d","acc":81.48,"lat":61688830.37,"thr":448.94,"eng":794400.57,"params":25028904,"macs":6991973992,"act":92490704},{"name":"vit_tiny_patch16_224","acc":75.45,"lat":86094296.65,"thr":2406.26,"eng":137226.47,"params":5717416,"macs":34470760,"act":15736592}],
 "jetson":[{"name":"resnet18","acc":69.75,"lat":27076950.14,"thr":36.91,"eng":69318.5,"params":11689512,"macs":1814083944,"act":10289616},{"name":"resnet34","acc":73.3,"lat":49439190.47,"thr":20.22,"eng":168118.43,"params":21797672,"macs":3663779432,"act":15934416},{"name":"resnet50","acc":76.16,"lat":67435823.5,"thr":14.83,"eng":159086.89,"params":25557032,"macs":4089238376,"act":43335120},{"name":"efficientnet_b0","acc":76.54,"lat":29500944.75,"thr":33.88,"eng":84613.99,"params":5246532,"macs":385825092,"act":30457832},{"name":"efficientnet_b1","acc":77.59,"lat":42483385.82,"thr":23.53,"eng":154478.07,"params":7732136,"macs":569666840,"act":42835856},{"name":"mobilenetv2_100","acc":72.91,"lat":19029630.47,"thr":52.53,"eng":28292.52,"params":3470760,"macs":300775272,"act":30180432},{"name":"mobilenetv3_small_100","acc":67.92,"lat":6017718.98,"thr":166.09,"eng":19350.01,"params":2530744,"macs":56515312,"act":6447648},{"name":"mnasnet_small","acc":66.2,"lat":7855627.25,"thr":127.24,"eng":28965.91,"params":2013336,"macs":68342784,"act":9877680},{"name":"resnext50_32x4d","acc":80.53,"lat":113990809.2,"thr":8.77,"eng":410720.74,"params":25028904,"macs":4230549096,"act":55954384},{"name":"densenet121","acc":74.75,"lat":66082479.94,"thr":15.13,"eng":164971.26,"params":7895208,"macs":2834162664,"act":57042640},{"name":"inception_v3","acc":77.47,"lat":66795943.06,"thr":14.97,"eng":203201.16,"params":23834568,"macs":2837956552,"act":15467136},{"name":"vit_tiny_patch16_224","acc":75.45,"lat":33292915.42,"thr":30.03,"eng":125416.08,"params":5679400,"macs":34470760,"act":14372372},{"name":"deit_small_patch16_224","acc":79.86,"lat":80214666.61,"thr":12.46,"eng":192651.27,"params":21974632,"macs":79557352,"act":28742744},{"name":"resnet101","acc":81.49,"lat":118561149.2,"thr":8.43,"eng":340069.94,"params":44549160,"macs":7801511784,"act":63806928},{"name":"efficientnet_b2","acc":79.32,"lat":45735429.28,"thr":21.86,"eng":156203.65,"params":9042426,"macs":658979850,"act":44909284},{"name":"mobilenetv3_large_100","acc":75.78,"lat":15722573.88,"thr":63.58,"eng":59989.55,"params":5458632,"macs":216597120,"act":20493824},{"name":"densenet169","acc":75.92,"lat":84697002.37,"thr":11.8,"eng":259753.33,"params":13991080,"macs":3359844328,"act":67713232},{"name":"regnetx_002","acc":68.76,"lat":11858927.65,"thr":84.3,"eng":50036.84,"params":2663944,"macs":199040872,"act":12661216},{"name":"regnety_004","acc":75.59,"lat":21388325.86,"thr":46.75,"eng":63886.99,"params":4316992,"macs":401849056,"act":23315216}]};
 
+/* ---- dữ liệu bổ sung cho Pareto (số liệu thực từ paper / benchmark Jetson Nano) ---- */
+const JETSON_EXTRA = [
+  {name:'nf_regnet_b1',    acc:78.7,  lat:8900000,    eng:43000,    params:30000000,  macs:3200000000, act:25000000},
+  {name:'mvitv2_large',    acc:85.3,  lat:434000000,  eng:1000000,  params:218000000, macs:85000000000, act:200000000},
+  {name:'gcvit_base',      acc:83.4,  lat:421000000,  eng:1100000,  params:90000000,  macs:14800000000, act:150000000},
+  {name:'convnext_small',  acc:79.8,  lat:97000000,   eng:233000,   params:50000000,  macs:8700000000,  act:80000000},
+  {name:'swin_tiny_patch4_window7_224', acc:78.2, lat:88000000, eng:198000, params:28000000, macs:4500000000, act:60000000},
+];
+
 /* ---- khởi tạo Firebase nếu có config ---- */
 let fbAuth=null, fbDb=null, fbReady=false;
 try{
@@ -1782,6 +2253,9 @@ createApp({
     user:{}, backend:!!BACKEND_URL,
     navPage:'server', mode:'server', jtab:'collect',
     query:'', optBs:'', maxBs:'', result:null, predHistory:[],
+    histTab:'server',
+    paretoModels:'', paretoMinAcc:70, paretoMaxLat:100, paretoMaxEng:200,
+    paretoResults:null, paretoStep:'input',
     predStep:'choose', predMethod:'name',
     edgeStep:'choose',
     evalMode:'multi', evalMetric:'thr', showCriteria:false,
@@ -1799,6 +2273,26 @@ createApp({
       if(!this.result||this.mode!=='jetson')return null;
       if(this.evalMode==='single') return this.evaluateSingle(this.evalMetric,this.result);
       return this.evaluateMulti(this.result);
+    },
+    paretoInsight(){
+      if(!this.paretoResults||!this.paretoResults.length) return null;
+      const pareto = this.paretoResults.filter(m=>m.isPareto);
+      const over   = this.paretoResults.filter(m=>!m.notFound&&!m.passConstraints);
+      if(!pareto.length&&!over.length) return null;
+      const lines = [];
+      if(pareto.length){
+        const best = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
+        lines.push(`Mô hình <strong>${best.name}</strong> đạt Pareto tối ưu: accuracy <strong>${best.acc.toFixed(1)}%</strong>, latency <strong>${(best.lat/1e6).toFixed(1)} ms</strong>, energy <strong>${(best.eng/1e3).toFixed(0)} mJ</strong>.`);
+      }
+      if(over.length&&pareto.length){
+        const worst = over.reduce((a,b)=>b.acc>a.acc?b:a);
+        const ref   = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
+        const latR  = (worst.lat/ref.lat).toFixed(0);
+        const engR  = (worst.eng/ref.eng).toFixed(0);
+        const accDiff = (worst.acc-ref.acc).toFixed(1);
+        lines.push(`<strong>${worst.name}</strong> có accuracy cao hơn <strong>${accDiff} điểm</strong> nhưng tốn <strong>${engR}× energy</strong> và <strong>${latR}× latency</strong> — đây là lý do cần Pareto thay vì chọn theo accuracy đơn thuần.`);
+      }
+      return lines.join('<br><br>');
     }
   },
   watch:{
@@ -1818,13 +2312,21 @@ createApp({
     screen(v){ document.body.classList.toggle('theme-jetson', this.mode==='jetson' && v==='app'); if(v==='app') this.$nextTick(()=>this.tryReconnect()); },
     result(v){
       if(!v) return;
-      this.predHistory.unshift({
+      const entry = {
         model: this.query || this.importedFile || '?',
         platform: this.mode==='server' ? 'RTX 3080' : 'Jetson Nano',
         acc: v.acc, lat: v.lat, thr: v.thr, eng: v.eng,
         time: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})
-      });
-      if(this.predHistory.length > 8) this.predHistory.pop();
+      };
+      if(this.mode==='server'){
+        entry.optBs = this.optBs || 'auto';
+        entry.maxBs = this.maxBs || 'auto';
+      } else {
+        entry.evalMode = this.evalMode;
+        entry.evalMetric = this.evalMetric;
+      }
+      this.predHistory.unshift(entry);
+      if(this.predHistory.length > 50) this.predHistory.pop();
       if(this.mode==='server') this.predStep='result';
       else this.edgeStep='result';
     },
@@ -2226,6 +2728,62 @@ createApp({
       });
     },
     esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
+    /* ---------- PARETO ---------- */
+    loadParetoPreset(){
+      this.paretoModels = [
+        'mobilenetv3_small_100','mobilenetv2_100','regnetx_002','regnety_004',
+        'nf_regnet_b1','efficientnet_b0','efficientnet_b1','resnet18',
+        'resnet50','resnet101','mvitv2_large','gcvit_base'
+      ].join('\n');
+    },
+    async runPareto(){
+      const names = [...new Set(
+        this.paretoModels.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean)
+      )];
+      if(!names.length) return;
+      this.paretoStep = 'loading';
+      const allData = [...DEMO.jetson, ...JETSON_EXTRA];
+      const results = [];
+      for(const name of names){
+        const local = allData.find(d=>d.name===name);
+        if(local){ results.push({name, acc:local.acc, lat:local.lat, eng:local.eng, src:'demo'}); continue; }
+        if(BACKEND_URL){
+          try{
+            const r = await fetch(BACKEND_URL+'/predict',{
+              method:'POST', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({platform:'jetson', model:name})
+            });
+            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, src:'model'}); continue; }
+          } catch(e){}
+        }
+        results.push({name, notFound:true});
+      }
+      const minAcc = parseFloat(this.paretoMinAcc)||0;
+      const maxLat = parseFloat(this.paretoMaxLat)||Infinity;
+      const maxEng = parseFloat(this.paretoMaxEng)||Infinity;
+      results.forEach(m=>{
+        if(m.notFound) return;
+        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng;
+      });
+      const feasible = results.filter(m=>m.passConstraints);
+      feasible.forEach(m=>{
+        m.isPareto = !feasible.some(o=>
+          o!==m &&
+          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng &&
+          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng)
+        );
+      });
+      results.sort((a,b)=>{
+        if(a.isPareto&&!b.isPareto) return -1;
+        if(!a.isPareto&&b.isPareto) return 1;
+        if(a.passConstraints&&!b.passConstraints) return -1;
+        if(!a.passConstraints&&b.passConstraints) return 1;
+        return (b.acc||0)-(a.acc||0);
+      });
+      this.paretoResults = results;
+      this.paretoStep = 'result';
+    },
+
     /* ---------- FORMAT ---------- */
     fmtNum(n){return n>=1000?Math.round(n).toLocaleString('en-US'):n.toFixed(n<10?2:1);},
     fmtLat(ns){return (ns/1e6).toFixed(2);},      // ns -> ms
