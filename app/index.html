@@ -368,6 +368,32 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
 .ht-plat.jtx{background:rgba(8,145,178,.12);color:#0891b2}
 .ht-num{font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
 
+/* ---- pareto history page ---- */
+.page-pareto-hist{max-width:980px;margin:0 auto;padding-bottom:48px}
+.ph-run{border:1.5px solid var(--line);border-radius:14px;margin-bottom:24px;overflow:hidden}
+.ph-run-header{
+  display:flex;align-items:center;gap:16px;padding:14px 20px;
+  background:color-mix(in srgb,var(--accent) 4%,var(--bg2));
+  border-bottom:1px solid var(--line);flex-wrap:wrap;
+}
+.ph-run-time{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--ink-soft)}
+.ph-run-constraint{
+  font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px;
+  background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent);
+}
+.ph-run-badges{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.ph-badge{font-size:12px;font-weight:800;padding:3px 10px;border-radius:6px}
+.ph-badge.p{background:rgba(16,185,129,.13);color:#059669}
+.ph-badge.f{background:color-mix(in srgb,var(--accent) 10%,transparent);color:var(--accent)}
+.ph-badge.o{background:rgba(239,68,68,.1);color:#dc2626}
+.ph-run-table{width:100%;border-collapse:collapse;font-size:15px;font-family:var(--sans)}
+.ph-run-table th{font-size:11px;font-weight:700;padding:8px 14px;border-bottom:1.5px solid var(--line);color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
+.ph-run-table td{padding:10px 14px;border-bottom:1px solid color-mix(in srgb,var(--line) 50%,transparent);font-weight:700}
+.ph-run-table tr:last-child td{border-bottom:0}
+.ph-run-table tr.row-pareto td:first-child{border-left:3px solid #10b981}
+.ph-run-table .p-name{font-family:var(--mono);font-size:14px}
+.ph-run-table .p-num{font-family:var(--mono);font-size:14px;color:var(--ink)}
+
 /* ---- history full page ---- */
 .page-history{max-width:940px;margin:0 auto;padding-bottom:48px}
 .hist-tabs{
@@ -1211,6 +1237,13 @@ footer .fsep{margin:0 12px;opacity:.4}
             <span class="nav-sub">Tất cả kết quả dự đoán</span>
           </span>
         </button>
+        <button class="nav-btn" :class="{on:navPage==='pareto-history'}" @click="navPage='pareto-history'">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">
+            <span class="nav-title">Lịch sử Pareto</span>
+            <span class="nav-sub">Các lần phân tích Pareto</span>
+          </span>
+        </button>
 
         <!-- Platform spec cards -->
         <div class="platform-cards" v-if="navPage==='server'||navPage==='edge'">
@@ -1475,13 +1508,166 @@ footer .fsep{margin:0 12px;opacity:.4}
       </div>
     </div>
 
+    <!-- ---- PARETO HISTORY PAGE ---- -->
+    <div v-else-if="navPage==='pareto-history'" class="page-pareto-hist">
+      <div class="page-hero">
+        <h2>Lịch sử <em>phân tích Pareto</em></h2>
+        <p>Toàn bộ các lần chạy phân tích Pareto trong phiên hiện tại.</p>
+      </div>
+
+      <div class="hist-tabs">
+        <button class="hist-tab" :class="{on:paretoHistTab==='edge'}" @click="paretoHistTab='edge'">
+          <span class="hist-tab-dot" style="background:#0891b2"></span>
+          Edge · Jetson Nano
+          <span class="hist-tab-count" v-if="paretoHistory.filter(h=>h.platform==='edge').length">
+            {{ paretoHistory.filter(h=>h.platform==='edge').length }}
+          </span>
+        </button>
+        <button class="hist-tab" :class="{on:paretoHistTab==='server'}" @click="paretoHistTab='server'">
+          <span class="hist-tab-dot" style="background:#6366f1"></span>
+          Server · RTX 3080
+          <span class="hist-tab-count" v-if="paretoHistory.filter(h=>h.platform==='server').length">
+            {{ paretoHistory.filter(h=>h.platform==='server').length }}
+          </span>
+        </button>
+      </div>
+
+      <!-- EDGE PARETO HISTORY -->
+      <div v-if="paretoHistTab==='edge'">
+        <div class="hist-empty" v-if="!paretoHistory.filter(h=>h.platform==='edge').length">
+          <span class="hist-empty-icon">📭</span>
+          <span>Chưa có lần phân tích nào.<br>Hãy chạy <strong>Tab 3 · Phân tích Pareto</strong> trên Edge.</span>
+        </div>
+        <div v-for="(run, ri) in paretoHistory.filter(h=>h.platform==='edge')" :key="ri" class="ph-run">
+          <div class="ph-run-header">
+            <span class="ph-run-time">{{ run.time }}</span>
+            <span class="ph-run-constraint">Acc ≥ {{ run.minAcc }}%</span>
+            <span class="ph-run-constraint">Lat ≤ {{ run.maxLat }} ms</span>
+            <span class="ph-run-constraint">Energy ≤ {{ run.maxEng }} mJ</span>
+            <div class="ph-run-badges">
+              <span class="ph-badge p" v-if="run.results.filter(m=>m.isPareto).length">
+                ✓ {{ run.results.filter(m=>m.isPareto).length }} Pareto
+              </span>
+              <span class="ph-badge f" v-if="run.results.filter(m=>m.passConstraints&&!m.isPareto).length">
+                {{ run.results.filter(m=>m.passConstraints&&!m.isPareto).length }} Trong ngân sách
+              </span>
+              <span class="ph-badge o" v-if="run.results.filter(m=>!m.passConstraints&&!m.notFound).length">
+                {{ run.results.filter(m=>!m.passConstraints&&!m.notFound).length }} Vượt
+              </span>
+            </div>
+          </div>
+          <table class="ph-run-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(m,mi) in run.results" :key="m.name" :class="{'row-pareto':m.isPareto}">
+                <td style="color:var(--ink-soft);font-size:13px">{{ mi+1 }}</td>
+                <td><span class="p-name">{{ m.name }}</span></td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound">{{ m.acc.toFixed(2) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="m.lat/1e6>run.maxLat?'color:#dc2626':''">{{ fmtLat(m.lat) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="m.eng/1e3>run.maxEng?'color:#dc2626':''">{{ fmtEng(m.eng) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
+                  <span v-else class="badge-over">Vượt ràng buộc</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SERVER PARETO HISTORY -->
+      <div v-if="paretoHistTab==='server'">
+        <div class="hist-empty" v-if="!paretoHistory.filter(h=>h.platform==='server').length">
+          <span class="hist-empty-icon">📭</span>
+          <span>Chưa có lần phân tích nào.<br>Hãy chạy <strong>Tab 2 · Phân tích Pareto</strong> trên Server.</span>
+        </div>
+        <div v-for="(run, ri) in paretoHistory.filter(h=>h.platform==='server')" :key="ri" class="ph-run">
+          <div class="ph-run-header">
+            <span class="ph-run-time">{{ run.time }}</span>
+            <span class="ph-run-constraint">Acc ≥ {{ run.minAcc }}%</span>
+            <span class="ph-run-constraint">Lat ≤ {{ run.maxLat }} ms</span>
+            <span class="ph-run-constraint">Energy ≤ {{ run.maxEng }} mJ</span>
+            <div class="ph-run-badges">
+              <span class="ph-badge p" v-if="run.results.filter(m=>m.isPareto).length">
+                ✓ {{ run.results.filter(m=>m.isPareto).length }} Pareto
+              </span>
+              <span class="ph-badge f" v-if="run.results.filter(m=>m.passConstraints&&!m.isPareto).length">
+                {{ run.results.filter(m=>m.passConstraints&&!m.isPareto).length }} Trong ngân sách
+              </span>
+              <span class="ph-badge o" v-if="run.results.filter(m=>!m.passConstraints&&!m.notFound).length">
+                {{ run.results.filter(m=>!m.passConstraints&&!m.notFound).length }} Vượt
+              </span>
+            </div>
+          </div>
+          <table class="ph-run-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(m,mi) in run.results" :key="m.name" :class="{'row-pareto':m.isPareto}">
+                <td style="color:var(--ink-soft);font-size:13px">{{ mi+1 }}</td>
+                <td><span class="p-name">{{ m.name }}</span></td>
+                <td><span class="p-num" v-if="!m.notFound">{{ m.acc.toFixed(2) }}</span><span v-else class="p-num dim">—</span></td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="m.lat/1e6>run.maxLat?'color:#dc2626':''">{{ fmtLat(m.lat) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="m.eng/1e3>run.maxEng?'color:#dc2626':''">{{ fmtEng(m.eng) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
+                  <span v-else class="badge-over">Vượt ràng buộc</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ---- SERVER / EDGE CONTENT ---- -->
     <div v-else-if="navPage==='server'||navPage==='edge'">
     <transition name="fade" mode="out-in">
 
     <!-- ---- SERVER MODE ---- -->
-    <div :key="mode+jtab" v-if="mode==='server'">
-      <div class="panel panel-server">
+    <div :key="mode+jtab+stab" v-if="mode==='server'">
+
+      <div class="subtabs">
+        <button :class="{on:stab==='predict'}" @click="stab='predict'">
+          <span class="stnum">1</span>Dự đoán
+        </button>
+        <button :class="{on:stab==='pareto'}" @click="stab='pareto'">
+          <span class="stnum">2</span>Phân tích Pareto
+        </button>
+      </div>
+
+      <!-- Tab 1: Dự đoán -->
+      <div class="panel panel-server" v-if="stab==='predict'">
         <div class="panel-header">
           <div class="panel-icon">⚡</div>
           <div><h3>Dự đoán hiệu năng trên RTX 3080</h3></div>
@@ -1766,6 +1952,117 @@ footer .fsep{margin:0 12px;opacity:.4}
 
         </transition>
       </div>
+
+      <!-- Tab 2: Phân tích Pareto RTX 3080 -->
+      <div class="panel panel-server pareto-panel" v-else-if="stab==='pareto'">
+        <div class="panel-header">
+          <div class="panel-icon"></div>
+          <div><h3>Phân tích Pareto — RTX 3080</h3></div>
+        </div>
+
+        <!-- INPUT -->
+        <div v-if="sParetoStep==='input'">
+          <div style="margin-bottom:18px">
+            <label class="pareto-label">DANH SÁCH MÔ HÌNH ỨNG VIÊN</label>
+            <div style="display:flex;gap:10px;align-items:flex-start">
+              <textarea class="pareto-textarea" v-model="sParetoModels"
+                placeholder="Nhập tên mô hình, mỗi dòng một tên&#10;vd: resnet50&#10;    efficientnet_b0"></textarea>
+              <button class="pareto-preset-btn" @click="loadServerParetoPreset">Dùng bộ mẫu RTX 3080 (12 mô hình)</button>
+            </div>
+          </div>
+          <div class="pareto-input-grid">
+            <div class="pareto-constraint">
+              <label class="pareto-label">ACCURACY TỐI THIỂU</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input class="pareto-textarea" style="height:44px;resize:none" type="number" v-model="sParetoMinAcc" min="0" max="100"/>
+                <span class="pareto-unit">%</span>
+              </div>
+            </div>
+            <div class="pareto-constraint">
+              <label class="pareto-label">LATENCY SLA TỐI ĐA</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input class="pareto-textarea" style="height:44px;resize:none" type="number" v-model="sParetoMaxLat" min="0"/>
+                <span class="pareto-unit">ms</span>
+              </div>
+            </div>
+            <div class="pareto-constraint">
+              <label class="pareto-label">NGÂN SÁCH ENERGY TỐI ĐA</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input class="pareto-textarea" style="height:44px;resize:none" type="number" v-model="sParetoMaxEng" min="0"/>
+                <span class="pareto-unit">mJ</span>
+              </div>
+            </div>
+          </div>
+          <button class="pareto-run-btn" :disabled="!sParetoModels.trim()" @click="runServerPareto">Phân tích Pareto →</button>
+        </div>
+
+        <!-- LOADING -->
+        <div v-else-if="sParetoStep==='loading'" style="padding:60px 0;text-align:center">
+          <div class="spinner" style="margin:0 auto 16px"></div>
+          <p style="color:var(--ink-soft);font-size:14px">Đang phân tích...</p>
+        </div>
+
+        <!-- RESULT -->
+        <div v-else-if="sParetoStep==='result' && sParetoResults">
+          <button class="pareto-back" @click="sParetoStep='input'">← Nhập lại</button>
+          <div class="pareto-summary">
+            <div class="psumm-card">
+              <div class="psumm-num">{{ sParetoResults.length }}</div>
+              <div>Mô hình phân tích</div>
+            </div>
+            <div class="psumm-card">
+              <div class="psumm-num pareto-color">{{ sParetoResults.filter(m=>m.isPareto).length }}</div>
+              <div>Pareto tối ưu</div>
+            </div>
+            <div class="psumm-card">
+              <div class="psumm-num budget-color">{{ sParetoResults.filter(m=>m.passConstraints&&!m.isPareto).length }}</div>
+              <div>Trong ngân sách</div>
+            </div>
+            <div class="psumm-card">
+              <div class="psumm-num over-color">{{ sParetoResults.filter(m=>!m.passConstraints&&!m.notFound).length }}</div>
+              <div>Vượt ràng buộc</div>
+            </div>
+          </div>
+          <table class="pareto-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(m,i) in sParetoResults" :key="m.name" :class="{'row-pareto':m.isPareto}">
+                <td class="p-num" style="color:var(--ink-soft)">{{ i+1 }}</td>
+                <td><span class="p-name">{{ m.name }}</span></td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound">{{ m.acc.toFixed(2) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="m.lat/1e6>sParetoMaxLat?'color:#dc2626':''">{{ fmtLat(m.lat) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="m.eng/1e3>sParetoMaxEng?'color:#dc2626':''">{{ fmtEng(m.eng) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
+                  <span v-else class="badge-over">Vượt ràng buộc</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pareto-insight" v-if="serverParetoInsight">
+            <div class="pareto-insight-title">💡 Nhận xét từ dữ liệu RTX 3080</div>
+            <div class="pareto-insight-body" v-html="serverParetoInsight"></div>
+          </div>
+        </div>
+      </div>
+
     </div>
 
     <!-- ---- JETSON MODE ---- -->
@@ -2252,8 +2549,12 @@ createApp({
     navPage:'server', mode:'server', jtab:'collect',
     query:'', optBs:'', maxBs:'', result:null, predHistory:[],
     histTab:'server',
+    stab:'predict',
     paretoModels:'', paretoMinAcc:70, paretoMaxLat:100, paretoMaxEng:200,
     paretoResults:null, paretoStep:'input',
+    sParetoModels:'', sParetoMinAcc:75, sParetoMaxLat:60, sParetoMaxEng:500,
+    sParetoResults:null, sParetoStep:'input',
+    paretoHistory:[], paretoHistTab:'edge',
     predStep:'choose', predMethod:'name',
     edgeStep:'choose',
     evalMode:'multi', evalMetric:'thr', showCriteria:false,
@@ -2289,6 +2590,25 @@ createApp({
         const engR  = (worst.eng/ref.eng).toFixed(0);
         const accDiff = (worst.acc-ref.acc).toFixed(1);
         lines.push(`<strong>${worst.name}</strong> có accuracy cao hơn <strong>${accDiff} điểm</strong> nhưng tốn <strong>${engR}× energy</strong> và <strong>${latR}× latency</strong> — đây là lý do cần Pareto thay vì chọn theo accuracy đơn thuần.`);
+      }
+      return lines.join('<br><br>');
+    },
+    serverParetoInsight(){
+      if(!this.sParetoResults||!this.sParetoResults.length) return null;
+      const pareto = this.sParetoResults.filter(m=>m.isPareto);
+      const over   = this.sParetoResults.filter(m=>!m.notFound&&!m.passConstraints);
+      if(!pareto.length&&!over.length) return null;
+      const lines = [];
+      if(pareto.length){
+        const best = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
+        lines.push(`Mô hình <strong>${best.name}</strong> đạt Pareto tối ưu: accuracy <strong>${best.acc.toFixed(1)}%</strong>, latency <strong>${(best.lat/1e6).toFixed(1)} ms</strong>, energy <strong>${(best.eng/1e3).toFixed(0)} mJ</strong>.`);
+      }
+      if(over.length&&pareto.length){
+        const worst = over.reduce((a,b)=>b.acc>a.acc?b:a);
+        const ref   = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
+        const engR  = (worst.eng/ref.eng).toFixed(0);
+        const accDiff = (worst.acc-ref.acc).toFixed(1);
+        lines.push(`<strong>${worst.name}</strong> có accuracy cao hơn <strong>${accDiff} điểm</strong> nhưng tốn <strong>${engR}× energy</strong> — đây là lý do cần Pareto thay vì chọn theo accuracy đơn thuần.`);
       }
       return lines.join('<br><br>');
     }
@@ -2779,7 +3099,77 @@ createApp({
         return (b.acc||0)-(a.acc||0);
       });
       this.paretoResults = results;
+      this.paretoHistory.unshift({
+        platform: 'edge',
+        time: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),
+        minAcc: parseFloat(this.paretoMinAcc)||0,
+        maxLat: parseFloat(this.paretoMaxLat)||Infinity,
+        maxEng: parseFloat(this.paretoMaxEng)||Infinity,
+        results: results.map(m=>({...m})),
+      });
+      if(this.paretoHistory.length > 30) this.paretoHistory.pop();
       this.paretoStep = 'result';
+    },
+
+    loadServerParetoPreset(){
+      this.sParetoModels = [
+        'mobilenetv3_small_100','mobilenetv2_100','regnetx_002','regnety_004',
+        'efficientnet_b0','efficientnet_b1','resnet18','resnet34',
+        'resnet50','resnet101','convnext_tiny','resnext50_32x4d'
+      ].join('\n');
+    },
+    async runServerPareto(){
+      const names = [...new Set(
+        this.sParetoModels.split(/[,\n]+/).map(s=>s.trim()).filter(Boolean)
+      )];
+      if(!names.length) return;
+      this.sParetoStep = 'loading';
+      const results = [];
+      for(const name of names){
+        const local = DEMO.rtx.find(d=>d.name===name);
+        if(local){ results.push({name, acc:local.acc, lat:local.lat, eng:local.eng, src:'demo'}); continue; }
+        if(BACKEND_URL){
+          try{
+            const r = await fetch(BACKEND_URL+'/predict',{
+              method:'POST', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({platform:'rtx', model:name})
+            });
+            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, src:'model'}); continue; }
+          } catch(e){}
+        }
+        results.push({name, notFound:true});
+      }
+      const minAcc = parseFloat(this.sParetoMinAcc)||0;
+      const maxLat = parseFloat(this.sParetoMaxLat)||Infinity;
+      const maxEng = parseFloat(this.sParetoMaxEng)||Infinity;
+      results.forEach(m=>{
+        if(m.notFound) return;
+        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng;
+      });
+      const feasible = results.filter(m=>m.passConstraints);
+      feasible.forEach(m=>{
+        m.isPareto = !feasible.some(o=>
+          o!==m &&
+          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng &&
+          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng)
+        );
+      });
+      results.sort((a,b)=>{
+        if(a.isPareto&&!b.isPareto) return -1;
+        if(!a.isPareto&&b.isPareto) return 1;
+        if(a.passConstraints&&!b.passConstraints) return -1;
+        if(!a.passConstraints&&b.passConstraints) return 1;
+        return (b.acc||0)-(a.acc||0);
+      });
+      this.sParetoResults = results;
+      this.paretoHistory.unshift({
+        platform: 'server',
+        time: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),
+        minAcc, maxLat, maxEng,
+        results: results.map(m=>({...m})),
+      });
+      if(this.paretoHistory.length > 30) this.paretoHistory.pop();
+      this.sParetoStep = 'result';
     },
 
     /* ---------- FORMAT ---------- */
