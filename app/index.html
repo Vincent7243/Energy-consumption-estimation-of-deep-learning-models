@@ -1781,7 +1781,7 @@ footer .fsep{margin:0 12px;opacity:.4}
               <button class="wizard-method-btn" @click="predMethod='file'; predStep='form'; importedFile=null; importStatus=null">
                 <span class="wm-icon">📂</span>
                 <span class="wm-title">Dự đoán bằng import file</span>
-                <span class="wm-sub">Upload .pth · .safetensors · .onnx · .pt</span>
+                <span class="wm-sub">Upload .pt · .pth · .safetensors · .bin · .ckpt</span>
               </button>
             </div>
           </div>
@@ -1863,11 +1863,11 @@ footer .fsep{margin:0 12px;opacity:.4}
           <div v-else-if="predStep==='form' && predMethod==='file'" key="s-form-file" class="wizard-form">
             <div class="import-area-large">
               <label class="import-btn-label" for="rtxFileInput" style="cursor:pointer">
-                <input type="file" id="rtxFileInput" ref="rtxFileInput" style="display:none" @change="onFileImport" accept=".pt,.pth,.onnx,.cbm,.h5,.pkl,.bin,.safetensors,.py,.torchscript">
+                <input type="file" id="rtxFileInput" ref="rtxFileInput" style="display:none" @change="onFileImport" accept=".pt,.pth,.safetensors,.bin,.ckpt">
                 ↑ Chọn file mô hình
               </label>
               <span v-if="importedFile" class="imported-chip">{{ importedFile }}</span>
-              <span class="import-area-hint">Hỗ trợ: .pth · .pt · .safetensors · .bin · .onnx<br>Hệ thống tự động trích xuất đặc trưng và dự đoán</span>
+              <span class="import-area-hint">Hỗ trợ: .pt · .pth · .safetensors · .bin · .ckpt<br>Hệ thống tự động trích xuất đặc trưng và dự đoán</span>
             </div>
             <div v-if="importStatus==='file-match'" class="import-notice ok">
               <strong>✅ Khớp với "{{ importMatchedModel }}" trong dataset</strong>
