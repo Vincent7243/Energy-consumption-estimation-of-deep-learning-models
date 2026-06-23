@@ -254,9 +254,9 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
   background:var(--panel);border:1px solid var(--line);border-radius:14px;
   padding:18px 20px;box-shadow:var(--shadow);
 }
-.feat-card .fc-icon{font-size:24px;margin-bottom:10px}
-.feat-card h4{font-size:14.5px;font-weight:700;margin:0 0 6px;color:var(--ink)}
-.feat-card p{font-size:13px;color:var(--ink-soft);line-height:1.6;margin:0}
+.feat-card .fc-icon{display:none}
+.feat-card h4{font-size:18px;font-weight:700;margin:0 0 10px;color:var(--ink)}
+.feat-card p{font-size:15px;color:var(--ink-soft);line-height:1.7;margin:0}
 .tech-row{
   display:flex;gap:10px;flex-wrap:wrap;
   background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;
@@ -418,9 +418,9 @@ input::placeholder{color:var(--ink-soft);opacity:.5}
 .hist-section{width:100%;overflow-x:auto}
 .hist-empty{
   display:flex;flex-direction:column;align-items:center;gap:12px;
-  padding:60px 0;color:var(--ink-soft);font-size:13px;text-align:center;line-height:1.65;
+  padding:60px 0;color:var(--ink-soft);font-size:17px;text-align:center;line-height:1.75;
 }
-.hist-empty-icon{font-size:38px;line-height:1}
+.hist-empty-icon{display:none}
 .hist-table-full{
   width:100%;border-collapse:collapse;font-size:17px;font-family:var(--sans);
 }
@@ -1231,14 +1231,12 @@ footer .fsep{margin:0 12px;opacity:.4}
         <div class="nav-sep"></div>
         <div class="nav-section-label">CÔNG CỤ</div>
         <button class="nav-btn" :class="{on:navPage==='history'}" @click="navPage='history'">
-          <span class="nav-icon">🕘</span>
           <span class="nav-text">
             <span class="nav-title">Lịch sử</span>
             <span class="nav-sub">Tất cả kết quả dự đoán</span>
           </span>
         </button>
         <button class="nav-btn" :class="{on:navPage==='pareto-history'}" @click="navPage='pareto-history'">
-          <span class="nav-icon">📊</span>
           <span class="nav-text">
             <span class="nav-title">Lịch sử Pareto</span>
             <span class="nav-sub">Các lần phân tích Pareto</span>
@@ -1992,6 +1990,13 @@ footer .fsep{margin:0 12px;opacity:.4}
                 <span class="pareto-unit">mJ</span>
               </div>
             </div>
+            <div class="pareto-constraint">
+              <label class="pareto-label">THROUGHPUT TỐI THIỂU</label>
+              <div style="display:flex;align-items:center;gap:6px">
+                <input class="pareto-textarea" style="height:44px;resize:none" type="number" v-model="sParetoMinThr" min="0"/>
+                <span class="pareto-unit">img/s</span>
+              </div>
+            </div>
           </div>
           <button class="pareto-run-btn" :disabled="!sParetoModels.trim()" @click="runServerPareto">Phân tích Pareto →</button>
         </div>
@@ -2026,7 +2031,7 @@ footer .fsep{margin:0 12px;opacity:.4}
           <table class="pareto-table">
             <thead>
               <tr>
-                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Trạng thái</th>
+                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Throughput (img/s)</th><th>Trạng thái</th>
               </tr>
             </thead>
             <tbody>
@@ -2045,6 +2050,13 @@ footer .fsep{margin:0 12px;opacity:.4}
                 <td>
                   <span class="p-num" v-if="!m.notFound"
                     :style="m.eng/1e3>sParetoMaxEng?'color:#dc2626':''">{{ fmtEng(m.eng) }}</span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="m.thr!=null&&m.thr<sParetoMinThr?'color:#dc2626':''">
+                    {{ m.thr!=null ? m.thr.toFixed(1) : '—' }}
+                  </span>
                   <span v-else class="p-num dim">—</span>
                 </td>
                 <td>
@@ -2323,6 +2335,13 @@ footer .fsep{margin:0 12px;opacity:.4}
                 <span class="pareto-unit">mJ</span>
               </div>
             </div>
+            <div>
+              <span class="pareto-label">Throughput tối thiểu</span>
+              <div class="pareto-constraint">
+                <input type="number" v-model="paretoMinThr" min="0" step="1" placeholder="0"/>
+                <span class="pareto-unit">img/s</span>
+              </div>
+            </div>
           </div>
 
           <button class="pareto-run-btn" :disabled="!paretoModels.trim()" @click="runPareto">
@@ -2370,6 +2389,7 @@ footer .fsep{margin:0 12px;opacity:.4}
                 <th>Acc (%)</th>
                 <th>Latency (ms)</th>
                 <th>Energy (mJ)</th>
+                <th>Throughput (img/s)</th>
                 <th>Trạng thái</th>
               </tr>
             </thead>
@@ -2394,6 +2414,13 @@ footer .fsep{margin:0 12px;opacity:.4}
                   <span v-if="!m.notFound" class="p-num"
                     :style="m.eng/1e3>paretoMaxEng?'color:#c82e1e':''">
                     {{ (m.eng/1e3).toFixed(1) }}
+                  </span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
+                  <span v-if="!m.notFound" class="p-num"
+                    :style="m.thr!=null&&m.thr<paretoMinThr?'color:#c82e1e':''">
+                    {{ m.thr!=null ? m.thr.toFixed(1) : '—' }}
                   </span>
                   <span v-else class="p-num dim">—</span>
                 </td>
@@ -2550,9 +2577,9 @@ createApp({
     query:'', optBs:'', maxBs:'', result:null, predHistory:[],
     histTab:'server',
     stab:'predict',
-    paretoModels:'', paretoMinAcc:70, paretoMaxLat:100, paretoMaxEng:200,
+    paretoModels:'', paretoMinAcc:70, paretoMaxLat:100, paretoMaxEng:200, paretoMinThr:0,
     paretoResults:null, paretoStep:'input',
-    sParetoModels:'', sParetoMinAcc:75, sParetoMaxLat:60, sParetoMaxEng:500,
+    sParetoModels:'', sParetoMinAcc:75, sParetoMaxLat:60, sParetoMaxEng:500, sParetoMinThr:0,
     sParetoResults:null, sParetoStep:'input',
     paretoHistory:[], paretoHistTab:'edge',
     predStep:'choose', predMethod:'name',
@@ -3064,14 +3091,14 @@ createApp({
       const results = [];
       for(const name of names){
         const local = allData.find(d=>d.name===name);
-        if(local){ results.push({name, acc:local.acc, lat:local.lat, eng:local.eng, src:'demo'}); continue; }
+        if(local){ results.push({name, acc:local.acc, lat:local.lat, eng:local.eng, thr:(local.thr!=null?local.thr:1e9/local.lat), src:'demo'}); continue; }
         if(BACKEND_URL){
           try{
             const r = await fetch(BACKEND_URL+'/predict',{
               method:'POST', headers:{'Content-Type':'application/json'},
               body: JSON.stringify({platform:'jetson', model:name})
             });
-            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, src:'model'}); continue; }
+            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, thr:d.thr, src:'model'}); continue; }
           } catch(e){}
         }
         results.push({name, notFound:true});
@@ -3079,16 +3106,17 @@ createApp({
       const minAcc = parseFloat(this.paretoMinAcc)||0;
       const maxLat = parseFloat(this.paretoMaxLat)||Infinity;
       const maxEng = parseFloat(this.paretoMaxEng)||Infinity;
+      const minThr = parseFloat(this.paretoMinThr)||0;
       results.forEach(m=>{
         if(m.notFound) return;
-        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng;
+        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng && m.thr>=minThr;
       });
       const feasible = results.filter(m=>m.passConstraints);
       feasible.forEach(m=>{
         m.isPareto = !feasible.some(o=>
           o!==m &&
-          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng &&
-          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng)
+          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng && o.thr>=m.thr &&
+          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng || o.thr>m.thr)
         );
       });
       results.sort((a,b)=>{
@@ -3105,6 +3133,7 @@ createApp({
         minAcc: parseFloat(this.paretoMinAcc)||0,
         maxLat: parseFloat(this.paretoMaxLat)||Infinity,
         maxEng: parseFloat(this.paretoMaxEng)||Infinity,
+        minThr: parseFloat(this.paretoMinThr)||0,
         results: results.map(m=>({...m})),
       });
       if(this.paretoHistory.length > 30) this.paretoHistory.pop();
@@ -3127,14 +3156,14 @@ createApp({
       const results = [];
       for(const name of names){
         const local = DEMO.rtx.find(d=>d.name===name);
-        if(local){ results.push({name, acc:local.acc, lat:local.lat, eng:local.eng, src:'demo'}); continue; }
+        if(local){ results.push({name, acc:local.acc, lat:local.lat, eng:local.eng, thr:local.thr, src:'demo'}); continue; }
         if(BACKEND_URL){
           try{
             const r = await fetch(BACKEND_URL+'/predict',{
               method:'POST', headers:{'Content-Type':'application/json'},
               body: JSON.stringify({platform:'rtx', model:name})
             });
-            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, src:'model'}); continue; }
+            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, thr:d.thr, src:'model'}); continue; }
           } catch(e){}
         }
         results.push({name, notFound:true});
@@ -3142,16 +3171,17 @@ createApp({
       const minAcc = parseFloat(this.sParetoMinAcc)||0;
       const maxLat = parseFloat(this.sParetoMaxLat)||Infinity;
       const maxEng = parseFloat(this.sParetoMaxEng)||Infinity;
+      const minThr = parseFloat(this.sParetoMinThr)||0;
       results.forEach(m=>{
         if(m.notFound) return;
-        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng;
+        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng && m.thr>=minThr;
       });
       const feasible = results.filter(m=>m.passConstraints);
       feasible.forEach(m=>{
         m.isPareto = !feasible.some(o=>
           o!==m &&
-          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng &&
-          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng)
+          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng && o.thr>=m.thr &&
+          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng || o.thr>m.thr)
         );
       });
       results.sort((a,b)=>{
@@ -3165,7 +3195,7 @@ createApp({
       this.paretoHistory.unshift({
         platform: 'server',
         time: new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),
-        minAcc, maxLat, maxEng,
+        minAcc, maxLat, maxEng, minThr,
         results: results.map(m=>({...m})),
       });
       if(this.paretoHistory.length > 30) this.paretoHistory.pop();
