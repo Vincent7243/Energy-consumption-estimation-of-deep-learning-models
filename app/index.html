@@ -1542,6 +1542,7 @@ footer .fsep{margin:0 12px;opacity:.4}
             <span class="ph-run-constraint">Acc ≥ {{ run.minAcc }}%</span>
             <span class="ph-run-constraint">Lat ≤ {{ run.maxLat }} ms</span>
             <span class="ph-run-constraint">Energy ≤ {{ run.maxEng }} mJ</span>
+            <span class="ph-run-constraint" v-if="run.minThr>0">Thr ≥ {{ run.minThr }} img/s</span>
             <div class="ph-run-badges">
               <span class="ph-badge p" v-if="run.results.filter(m=>m.isPareto).length">
                 ✓ {{ run.results.filter(m=>m.isPareto).length }} Pareto
@@ -1557,7 +1558,7 @@ footer .fsep{margin:0 12px;opacity:.4}
           <table class="ph-run-table">
             <thead>
               <tr>
-                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Trạng thái</th>
+                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Throughput (img/s)</th><th>Trạng thái</th>
               </tr>
             </thead>
             <tbody>
@@ -1579,8 +1580,15 @@ footer .fsep{margin:0 12px;opacity:.4}
                   <span v-else class="p-num dim">—</span>
                 </td>
                 <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="run.minThr>0&&m.thr!=null&&m.thr<run.minThr?'color:#dc2626':''">
+                    {{ m.thr!=null ? m.thr.toFixed(1) : '—' }}
+                  </span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
                   <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
-                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">Pareto tối ưu</span>
                   <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
                   <span v-else class="badge-over">Vượt ràng buộc</span>
                 </td>
@@ -1602,6 +1610,7 @@ footer .fsep{margin:0 12px;opacity:.4}
             <span class="ph-run-constraint">Acc ≥ {{ run.minAcc }}%</span>
             <span class="ph-run-constraint">Lat ≤ {{ run.maxLat }} ms</span>
             <span class="ph-run-constraint">Energy ≤ {{ run.maxEng }} mJ</span>
+            <span class="ph-run-constraint" v-if="run.minThr>0">Thr ≥ {{ run.minThr }} img/s</span>
             <div class="ph-run-badges">
               <span class="ph-badge p" v-if="run.results.filter(m=>m.isPareto).length">
                 ✓ {{ run.results.filter(m=>m.isPareto).length }} Pareto
@@ -1617,7 +1626,7 @@ footer .fsep{margin:0 12px;opacity:.4}
           <table class="ph-run-table">
             <thead>
               <tr>
-                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Trạng thái</th>
+                <th>#</th><th>Mô hình</th><th>Acc (%)</th><th>Latency (ms)</th><th>Energy (mJ)</th><th>Throughput (img/s)</th><th>Trạng thái</th>
               </tr>
             </thead>
             <tbody>
@@ -1636,8 +1645,15 @@ footer .fsep{margin:0 12px;opacity:.4}
                   <span v-else class="p-num dim">—</span>
                 </td>
                 <td>
+                  <span class="p-num" v-if="!m.notFound"
+                    :style="run.minThr>0&&m.thr!=null&&m.thr<run.minThr?'color:#dc2626':''">
+                    {{ m.thr!=null ? m.thr.toFixed(1) : '—' }}
+                  </span>
+                  <span v-else class="p-num dim">—</span>
+                </td>
+                <td>
                   <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
-                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">Pareto tối ưu</span>
                   <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
                   <span v-else class="badge-over">Vượt ràng buộc</span>
                 </td>
@@ -2003,8 +2019,9 @@ footer .fsep{margin:0 12px;opacity:.4}
 
         <!-- LOADING -->
         <div v-else-if="sParetoStep==='loading'" style="padding:60px 0;text-align:center">
-          <div class="spinner" style="margin:0 auto 16px"></div>
-          <p style="color:var(--ink-soft);font-size:14px">Đang phân tích...</p>
+          <div class="wl-ring" style="margin:0 auto 18px"></div>
+          <div style="font-size:15px;font-weight:600;color:var(--ink)">Đang tra cứu và phân tích…</div>
+          <div style="font-size:13px;color:var(--ink-soft);margin-top:6px">Tính toán tập Pareto-optimal từ dữ liệu RTX 3080</div>
         </div>
 
         <!-- RESULT -->
@@ -2061,7 +2078,7 @@ footer .fsep{margin:0 12px;opacity:.4}
                 </td>
                 <td>
                   <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
-                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">Pareto tối ưu</span>
                   <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
                   <span v-else class="badge-over">Vượt ràng buộc</span>
                 </td>
@@ -2069,7 +2086,7 @@ footer .fsep{margin:0 12px;opacity:.4}
             </tbody>
           </table>
           <div class="pareto-insight" v-if="serverParetoInsight">
-            <div class="pareto-insight-title">💡 Nhận xét từ dữ liệu RTX 3080</div>
+            <div class="pareto-insight-title">Nhận xét từ dữ liệu RTX 3080</div>
             <div class="pareto-insight-body" v-html="serverParetoInsight"></div>
           </div>
         </div>
@@ -2426,7 +2443,7 @@ footer .fsep{margin:0 12px;opacity:.4}
                 </td>
                 <td>
                   <span v-if="m.notFound" class="badge-notfound">Không tìm thấy</span>
-                  <span v-else-if="m.isPareto" class="badge-pareto">✓ Pareto tối ưu</span>
+                  <span v-else-if="m.isPareto" class="badge-pareto">Pareto tối ưu</span>
                   <span v-else-if="m.passConstraints" class="badge-feasible">Trong ngân sách</span>
                   <span v-else class="badge-over">Vượt ràng buộc</span>
                 </td>
@@ -2436,7 +2453,7 @@ footer .fsep{margin:0 12px;opacity:.4}
 
           <!-- Insight box -->
           <div class="pareto-insight" v-if="paretoInsight">
-            <div class="pareto-insight-title">💡 Nhận xét từ dữ liệu Jetson Nano</div>
+            <div class="pareto-insight-title">Nhận xét từ dữ liệu Jetson Nano</div>
             <div class="pareto-insight-body" v-html="paretoInsight"></div>
           </div>
         </div>
@@ -2608,17 +2625,29 @@ createApp({
       const lines = [];
       if(pareto.length){
         const best = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
-        lines.push(`Mô hình <strong>${best.name}</strong> đạt Pareto tối ưu: accuracy <strong>${best.acc.toFixed(1)}%</strong>, latency <strong>${(best.lat/1e6).toFixed(1)} ms</strong>, energy <strong>${(best.eng/1e3).toFixed(0)} mJ</strong>.`);
+        const thrPart = best.thr!=null ? `, throughput <strong>${best.thr.toFixed(1)} img/s</strong>` : '';
+        lines.push(`Mô hình <strong>${best.name}</strong> đạt Pareto tối ưu với accuracy cao nhất: <strong>${best.acc.toFixed(1)}%</strong>, latency <strong>${(best.lat/1e6).toFixed(1)} ms</strong>, energy <strong>${(best.eng/1e3).toFixed(0)} mJ</strong>${thrPart}.`);
+        const fastThr = pareto.reduce((a,b)=>(a.thr||0)>(b.thr||0)?a:b);
+        if(fastThr.thr!=null && fastThr.name!==best.name){
+          lines.push(`<strong>${fastThr.name}</strong> có throughput cao nhất trong tập Pareto: <strong>${fastThr.thr.toFixed(1)} img/s</strong> (${(fastThr.thr/best.thr).toFixed(1)}× so với ${best.name}), phù hợp hơn cho kịch bản xử lý hàng loạt.`);
+        }
       }
-      if(over.length&&pareto.length){
+      if(over.length && !pareto.length){
+        lines.push(`Không tìm được tập Pareto-optimal, tất cả ${over.length} mô hình đều vượt ít nhất một ràng buộc. Thử nới lỏng các ngưỡng latency, energy hoặc throughput để tìm được ứng viên phù hợp.`);
+      } else if(over.length&&pareto.length){
         const worst = over.reduce((a,b)=>b.acc>a.acc?b:a);
         const ref   = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
-        const latR  = (worst.lat/ref.lat).toFixed(0);
-        const engR  = (worst.eng/ref.eng).toFixed(0);
+        const latR  = (worst.lat/ref.lat).toFixed(1);
+        const engR  = (worst.eng/ref.eng).toFixed(1);
         const accDiff = (worst.acc-ref.acc).toFixed(1);
-        lines.push(`<strong>${worst.name}</strong> có accuracy cao hơn <strong>${accDiff} điểm</strong> nhưng tốn <strong>${engR}× energy</strong> và <strong>${latR}× latency</strong> — đây là lý do cần Pareto thay vì chọn theo accuracy đơn thuần.`);
+        let thrPart = '';
+        if(worst.thr!=null && ref.thr!=null && ref.thr>0){
+          const ratio = worst.thr/ref.thr;
+          if(ratio < 0.95) thrPart = ` và throughput chỉ bằng <strong>${(ratio*100).toFixed(0)}%</strong>`;
+        }
+        lines.push(`<strong>${worst.name}</strong> có accuracy cao hơn <strong>${accDiff} điểm</strong> nhưng tốn <strong>${engR}× energy</strong> và <strong>${latR}× latency</strong>${thrPart}, đây là lý do cần Pareto thay vì chọn theo accuracy đơn thuần.`);
       }
-      return lines.join('<br><br>');
+      return lines.join('<br><br>') || null;
     },
     serverParetoInsight(){
       if(!this.sParetoResults||!this.sParetoResults.length) return null;
@@ -2628,16 +2657,29 @@ createApp({
       const lines = [];
       if(pareto.length){
         const best = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
-        lines.push(`Mô hình <strong>${best.name}</strong> đạt Pareto tối ưu: accuracy <strong>${best.acc.toFixed(1)}%</strong>, latency <strong>${(best.lat/1e6).toFixed(1)} ms</strong>, energy <strong>${(best.eng/1e3).toFixed(0)} mJ</strong>.`);
+        const thrPart = best.thr!=null ? `, throughput <strong>${best.thr.toFixed(1)} img/s</strong>` : '';
+        lines.push(`Mô hình <strong>${best.name}</strong> đạt Pareto tối ưu với accuracy cao nhất: <strong>${best.acc.toFixed(1)}%</strong>, latency <strong>${(best.lat/1e6).toFixed(1)} ms</strong>, energy <strong>${(best.eng/1e3).toFixed(0)} mJ</strong>${thrPart}.`);
+        const fastThr = pareto.reduce((a,b)=>(a.thr||0)>(b.thr||0)?a:b);
+        if(fastThr.thr!=null && fastThr.name!==best.name){
+          lines.push(`<strong>${fastThr.name}</strong> có throughput cao nhất trong tập Pareto: <strong>${fastThr.thr.toFixed(1)} img/s</strong> (${(fastThr.thr/best.thr).toFixed(1)}× so với ${best.name}), phù hợp hơn cho kịch bản xử lý hàng loạt.`);
+        }
       }
-      if(over.length&&pareto.length){
+      if(over.length && !pareto.length){
+        lines.push(`Không tìm được tập Pareto-optimal, tất cả ${over.length} mô hình đều vượt ít nhất một ràng buộc. Thử nới lỏng các ngưỡng latency, energy hoặc throughput để tìm được ứng viên phù hợp.`);
+      } else if(over.length&&pareto.length){
         const worst = over.reduce((a,b)=>b.acc>a.acc?b:a);
         const ref   = pareto.reduce((a,b)=>a.acc>b.acc?a:b);
-        const engR  = (worst.eng/ref.eng).toFixed(0);
+        const latR  = (worst.lat/ref.lat).toFixed(1);
+        const engR  = (worst.eng/ref.eng).toFixed(1);
         const accDiff = (worst.acc-ref.acc).toFixed(1);
-        lines.push(`<strong>${worst.name}</strong> có accuracy cao hơn <strong>${accDiff} điểm</strong> nhưng tốn <strong>${engR}× energy</strong> — đây là lý do cần Pareto thay vì chọn theo accuracy đơn thuần.`);
+        let thrPart = '';
+        if(worst.thr!=null && ref.thr!=null && ref.thr>0){
+          const ratio = worst.thr/ref.thr;
+          if(ratio < 0.95) thrPart = ` và throughput chỉ bằng <strong>${(ratio*100).toFixed(0)}%</strong>`;
+        }
+        lines.push(`<strong>${worst.name}</strong> có accuracy cao hơn <strong>${accDiff} điểm</strong> nhưng tốn <strong>${engR}× energy</strong> và <strong>${latR}× latency</strong>${thrPart}, đây là lý do cần Pareto thay vì chọn theo accuracy đơn thuần.`);
       }
-      return lines.join('<br><br>');
+      return lines.join('<br><br>') || null;
     }
   },
   watch:{
@@ -3098,7 +3140,7 @@ createApp({
               method:'POST', headers:{'Content-Type':'application/json'},
               body: JSON.stringify({platform:'jetson', model:name})
             });
-            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, thr:d.thr, src:'model'}); continue; }
+            if(r.ok){ const d=await r.json(); results.push({name, acc:d.accuracy, lat:d.latency, eng:d.energy, thr:d.throughput, src:'model'}); continue; }
           } catch(e){}
         }
         results.push({name, notFound:true});
@@ -3109,15 +3151,17 @@ createApp({
       const minThr = parseFloat(this.paretoMinThr)||0;
       results.forEach(m=>{
         if(m.notFound) return;
-        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng && m.thr>=minThr;
+        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng
+          && (minThr<=0 || (m.thr!=null && m.thr>=minThr));
       });
       const feasible = results.filter(m=>m.passConstraints);
       feasible.forEach(m=>{
-        m.isPareto = !feasible.some(o=>
-          o!==m &&
-          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng && o.thr>=m.thr &&
-          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng || o.thr>m.thr)
-        );
+        m.isPareto = !feasible.some(o=>{
+          if(o===m) return false;
+          const hasThr = o.thr!=null && m.thr!=null;
+          return o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng && (!hasThr||o.thr>=m.thr) &&
+            (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng || (hasThr&&o.thr>m.thr));
+        });
       });
       results.sort((a,b)=>{
         if(a.isPareto&&!b.isPareto) return -1;
@@ -3163,7 +3207,7 @@ createApp({
               method:'POST', headers:{'Content-Type':'application/json'},
               body: JSON.stringify({platform:'rtx', model:name})
             });
-            if(r.ok){ const d=await r.json(); results.push({name, acc:d.acc, lat:d.lat, eng:d.eng, thr:d.thr, src:'model'}); continue; }
+            if(r.ok){ const d=await r.json(); results.push({name, acc:d.accuracy, lat:d.latency, eng:d.energy, thr:d.throughput, src:'model'}); continue; }
           } catch(e){}
         }
         results.push({name, notFound:true});
@@ -3174,15 +3218,17 @@ createApp({
       const minThr = parseFloat(this.sParetoMinThr)||0;
       results.forEach(m=>{
         if(m.notFound) return;
-        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng && m.thr>=minThr;
+        m.passConstraints = m.acc>=minAcc && m.lat/1e6<=maxLat && m.eng/1e3<=maxEng
+          && (minThr<=0 || (m.thr!=null && m.thr>=minThr));
       });
       const feasible = results.filter(m=>m.passConstraints);
       feasible.forEach(m=>{
-        m.isPareto = !feasible.some(o=>
-          o!==m &&
-          o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng && o.thr>=m.thr &&
-          (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng || o.thr>m.thr)
-        );
+        m.isPareto = !feasible.some(o=>{
+          if(o===m) return false;
+          const hasThr = o.thr!=null && m.thr!=null;
+          return o.acc>=m.acc && o.lat<=m.lat && o.eng<=m.eng && (!hasThr||o.thr>=m.thr) &&
+            (o.acc>m.acc || o.lat<m.lat || o.eng<m.eng || (hasThr&&o.thr>m.thr));
+        });
       });
       results.sort((a,b)=>{
         if(a.isPareto&&!b.isPareto) return -1;
