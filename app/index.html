@@ -1534,7 +1534,7 @@ footer .fsep{margin:0 12px;opacity:.4}
       <div v-if="paretoHistTab==='edge'">
         <div class="hist-empty" v-if="!paretoHistory.filter(h=>h.platform==='edge').length">
           <span class="hist-empty-icon">📭</span>
-          <span>Chưa có lần phân tích nào.<br>Hãy chạy <strong>Tab 3 · Phân tích Pareto</strong> trên Edge.</span>
+          <span>Chưa có lần phân tích nào.<br>Hãy chạy <strong>Tab 3 Phân tích Pareto</strong> trên Edge.</span>
         </div>
         <div v-for="(run, ri) in paretoHistory.filter(h=>h.platform==='edge')" :key="ri" class="ph-run">
           <div class="ph-run-header">
@@ -1602,7 +1602,7 @@ footer .fsep{margin:0 12px;opacity:.4}
       <div v-if="paretoHistTab==='server'">
         <div class="hist-empty" v-if="!paretoHistory.filter(h=>h.platform==='server').length">
           <span class="hist-empty-icon">📭</span>
-          <span>Chưa có lần phân tích nào.<br>Hãy chạy <strong>Tab 2 · Phân tích Pareto</strong> trên Server.</span>
+          <span>Chưa có lần phân tích nào.<br>Hãy chạy <strong>Tab 2  Phân tích Pareto</strong> trên Server.</span>
         </div>
         <div v-for="(run, ri) in paretoHistory.filter(h=>h.platform==='server')" :key="ri" class="ph-run">
           <div class="ph-run-header">
