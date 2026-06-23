@@ -1340,12 +1340,12 @@ footer .fsep{margin:0 12px;opacity:.4}
         <h2>Hướng dẫn <em>sử dụng</em></h2>
         <p>Hướng dẫn từng bước để dự đoán và benchmark hiệu năng mô hình Deep Learning trên hai nền tảng.</p>
       </div>
-      <div class="guide-sep">SERVER · RTX 3080 — Dự đoán nhanh</div>
+      <div class="guide-sep">SERVER RTX 3080 — Dự đoán nhanh</div>
       <div class="guide-step">
         <div class="step-num">1</div>
         <div>
-          <h4>Chuyển sang tab Server · RTX 3080</h4>
-          <p>Nhấn nút <strong>Server · RTX 3080</strong> ở thanh điều hướng bên trái để vào trang dự đoán.</p>
+          <h4>Chuyển sang tab Server RTX 3080</h4>
+          <p>Nhấn nút <strong>Server RTX 3080</strong> ở thanh điều hướng bên trái để vào trang dự đoán.</p>
         </div>
       </div>
       <div class="guide-step">
@@ -1365,12 +1365,12 @@ footer .fsep{margin:0 12px;opacity:.4}
           <p>Kết quả hiển thị ngay: <strong>Accuracy</strong> (độ chính xác ImageNet), <strong>Latency</strong> (ms/ảnh), <strong>Throughput</strong> (img/s), <strong>Energy</strong> (mJ/ảnh).</p>
         </div>
       </div>
-      <div class="guide-sep">EDGE · JETSON NANO — Benchmark thực tế</div>
+      <div class="guide-sep">EDGE JETSON NANO — Benchmark thực tế</div>
       <div class="guide-step">
         <div class="step-num">1</div>
         <div>
-          <h4>Chuyển sang tab Edge · Jetson Nano</h4>
-          <p>Nhấn <strong>Edge · Jetson Nano</strong> ở thanh điều hướng trái. Chọn tab <strong>"Thu thập (SSH → flops_csv2.py)"</strong>.</p>
+          <h4>Chuyển sang tab Edge Jetson Nano</h4>
+          <p>Nhấn <strong>Edge Jetson Nano</strong> ở thanh điều hướng trái. Chọn tab <strong>"Thu thập (SSH → flops_csv2.py)"</strong>.</p>
         </div>
       </div>
       <div class="guide-step">
@@ -1429,7 +1429,7 @@ footer .fsep{margin:0 12px;opacity:.4}
       <div v-if="histTab==='server'" class="hist-section">
         <div class="hist-empty" v-if="!predHistory.filter(h=>h.platform==='RTX 3080').length">
           <span class="hist-empty-icon">📭</span>
-          <span>Chưa có dự đoán nào trên Server.<br>Hãy thử tại trang <strong>Server · RTX 3080</strong>.</span>
+          <span>Chưa có dự đoán nào trên Server.<br>Hãy thử tại trang <strong>Server RTX 3080</strong>.</span>
         </div>
         <table class="hist-table-full" v-else>
           <thead>
@@ -1467,7 +1467,7 @@ footer .fsep{margin:0 12px;opacity:.4}
       <div v-if="histTab==='edge'" class="hist-section">
         <div class="hist-empty" v-if="!predHistory.filter(h=>h.platform==='Jetson Nano').length">
           <span class="hist-empty-icon">📭</span>
-          <span>Chưa có dự đoán nào trên Edge.<br>Hãy thử tại trang <strong>Edge · Jetson Nano</strong>.</span>
+          <span>Chưa có dự đoán nào trên Edge.<br>Hãy thử tại trang <strong>Edge Jetson Nano</strong>.</span>
         </div>
         <table class="hist-table-full" v-else>
           <thead>
